@@ -25,11 +25,14 @@ const (
 var packets = map[State][]Packet{
 	HANDSHAKING: {0x00: &Handshaking{}, 0xFE: nil /*Legacy type*/},
 	STATUS:      {0x00: &StatusRequest{}, 0x01: &StatusPing{}},
+	LOGIN:       {},
+	PLAY:        {},
 }
 
 var dataReadMap = map[string]func(buf []byte) (interface{}, int){
 	"long":   dataTypes.ReadLong,
 	"varInt": dataTypes.ReadVarInt,
+	"string": dataTypes.ReadString,
 }
 
 var dataWriteMap = map[string]func(interface{}) []byte{
