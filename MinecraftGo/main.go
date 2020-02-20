@@ -1,11 +1,15 @@
 package main
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
 	"fmt"
 	"net"
 
 	"./packet"
 )
+
+var keyPair *rsa.PrivateKey
 
 func main() {
 
@@ -15,6 +19,16 @@ func main() {
 		fmt.Println(exception)
 		return
 	}
+
+	fmt.Println("Generating Keypair")
+	key, exception := rsa.GenerateKey(rand.Reader, 1024)
+
+	if exception != nil {
+		fmt.Println(exception)
+		return
+	}
+
+	keyPair = key
 
 	fmt.Println("Listening on port 25565")
 
@@ -30,5 +44,5 @@ func main() {
 }
 
 func handleConnection(connection net.Conn) {
-	packet.Init(connection)
+	packet.Init(connection, keyPair)
 }

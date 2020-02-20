@@ -1,6 +1,7 @@
 package packet
 
 import (
+	"crypto/rsa"
 	"fmt"
 	"net"
 	"reflect"
@@ -11,6 +12,7 @@ import (
 type Connection struct {
 	State State
 	Conn  net.Conn
+	Key   *rsa.PrivateKey
 }
 
 type State int
@@ -40,10 +42,11 @@ var dataWriteMap = map[string]func(interface{}) []byte{
 	"varInt": dataTypes.WriteVarInt,
 }
 
-func Init(conn net.Conn) *Connection {
+func Init(conn net.Conn, key *rsa.PrivateKey) *Connection {
 	newConnection := Connection{
 		State: HANDSHAKING,
 		Conn:  conn,
+		Key:   key,
 	}
 
 	go newConnection.Handle()
