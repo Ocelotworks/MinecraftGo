@@ -1,16 +1,17 @@
 package packet
 
 import (
-	"../dataTypes"
 	"encoding/hex"
 	"fmt"
+
+	"../dataTypes"
 )
 
 type Handshaking struct {
-	ProtocolVersion int
-	ServerAddress   string
-	ServerPort      uint16
-	NextState       int
+	ProtocolVersion int    `proto:"varInt"`
+	ServerAddress   string `proto:"string"`
+	ServerPort      uint16 `proto:"unsignedShort"`
+	NextState       int    `proto:"varInt"`
 }
 
 func (h *Handshaking) Handle(packet []byte, connection *Connection) {
@@ -39,4 +40,5 @@ func (h *Handshaking) Handle(packet []byte, connection *Connection) {
 	h.NextState = nextState
 
 	fmt.Println("Next State", nextState)
+	connection.State = State(nextState)
 }

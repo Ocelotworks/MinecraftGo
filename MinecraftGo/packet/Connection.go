@@ -1,9 +1,10 @@
 package packet
 
 import (
-	"../dataTypes"
 	"fmt"
 	"net"
+
+	"../dataTypes"
 )
 
 type Connection struct {
@@ -19,6 +20,11 @@ const (
 	LOGIN       State = 2
 	PLAY        State = 3
 )
+
+var packets = map[State][]Packet{
+	HANDSHAKING: {0x00: &Handshaking{}, 0xFE: nil /*Legacy type*/},
+	STATUS:      {0x00: &StatusRequest{}, 0x01: &StatusPing{}},
+}
 
 func Init(conn net.Conn) *Connection {
 	newConnection := Connection{
@@ -49,14 +55,13 @@ func (c *Connection) Handle() {
 			cursor += end
 			fmt.Printf("Packet Type: %d\n", packetType)
 
-			var packet Packet
-			switch packetType {
-			case 0:
-				packet = &Handshaking{}
-				break
+			if packets[c.State] == nil {
+				fmt.Println("Bad State ", c.State)
+			} else if packets[c.State][packetType] == nil {
+				fmt.Println("Bad Packet Type ", packetType)
+			} else {
+				packets[c.State][packetType].Handle(buf[cursor:cursor+length], c)
 			}
-
-			packet.Handle(buf[cursor:cursor+length], c)
 		}
 	}
 }
