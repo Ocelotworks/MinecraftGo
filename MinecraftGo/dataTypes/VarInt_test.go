@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test(t *testing.T) {
-	test, _ := ReadVarInt([]byte{0xc2, 0x04})
+func TestFixedValues(t *testing.T) {
+	test, _ := ReadVarInt([]byte{0x00})
 	assert.Equal(t, test, 0)
 
 	test, _ = ReadVarInt([]byte{0x01})
@@ -33,4 +33,11 @@ func Test(t *testing.T) {
 
 	test, _ = ReadVarInt([]byte{0x80, 0x80, 0x80, 0x80, 0x08})
 	assert.Equal(t, test, -2147483648)
+}
+
+func TestReadWrite(t *testing.T) {
+	for i := 0; i <= 2048; i++ {
+		test, _ := ReadVarInt(WriteVarInt(i))
+		assert.Equal(t, i, test)
+	}
 }
