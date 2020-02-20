@@ -9,5 +9,7 @@ func (sp *StatusPing) GetPacketId() int {
 }
 
 func (sp *StatusPing) Handle(packet []byte, connection *Connection) {
-	//sends the pong
+	//Just send the pong right back
+	returnPacket := Packet(sp)
+	connection.SendPacket(&returnPacket)
 }
