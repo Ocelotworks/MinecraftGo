@@ -4,6 +4,6 @@ import (
 	"encoding/binary"
 )
 
-func ReadUnsignedShort(buf []byte) (uint16, int) {
+func ReadUnsignedShort(buf []byte) (interface{}, int) {
 	return binary.BigEndian.Uint16(buf), 3
 }

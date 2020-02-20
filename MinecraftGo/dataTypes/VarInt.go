@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func ReadVarInt(buf []byte) (int, int) {
+func ReadVarInt(buf []byte) (interface{}, int) {
 	numRead := 0
 	result := 0
 
@@ -22,4 +22,19 @@ func ReadVarInt(buf []byte) (int, int) {
 	}
 
 	return result, numRead + 1
+}
+
+func WriteVarInt(value interface{}) []byte {
+	output := make([]byte, 0)
+	for {
+		temp := byte(value.(int) & 0b01111111)
+		temp >>= 7
+		if value != 0 {
+			temp |= 0b10000000
+		}
+		output = append(output, temp)
+		if value == 0 {
+			return output
+		}
+	}
 }

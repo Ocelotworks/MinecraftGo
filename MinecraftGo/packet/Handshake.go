@@ -1,11 +1,6 @@
 package packet
 
-import (
-	"encoding/hex"
-	"fmt"
-
-	"../dataTypes"
-)
+import "fmt"
 
 type Handshaking struct {
 	ProtocolVersion int    `proto:"varInt"`
@@ -14,31 +9,36 @@ type Handshaking struct {
 	NextState       int    `proto:"varInt"`
 }
 
+func (h *Handshaking) GetPacketId() int {
+	return 0x00
+}
+
 func (h *Handshaking) Handle(packet []byte, connection *Connection) {
-	fmt.Println(hex.Dump(packet))
-	fmt.Println("We are now handling a handshake packet")
+	//fmt.Println(hex.Dump(packet))
+	//fmt.Println("We are now handling a handshake packet")
+	//
+	//protocolVersion, cursor := dataTypes.ReadVarInt(packet)
+	//h.ProtocolVersion = protocolVersion
+	//fmt.Printf("Protocol Version %d (end %d)\n", protocolVersion, cursor)
+	//
+	//somethingElse, end := dataTypes.ReadVarInt(packet[cursor:])
+	//cursor += end
+	//fmt.Println("Mysterious value", somethingElse)
+	//
+	//serverAddress, end := dataTypes.ReadString(packet[cursor:])
+	//cursor += end
+	//h.ServerAddress = serverAddress
+	//fmt.Printf("Server Address lives at %d: '%s'\n", cursor, h.ServerAddress)
+	//
+	//fmt.Println(packet[cursor:])
+	//serverPort, end := dataTypes.ReadUnsignedShort(packet[cursor:])
+	//cursor += end
+	//fmt.Println("Server port", serverPort)
+	//
+	//nextState, end := dataTypes.ReadVarInt(packet[cursor:])
+	//h.NextState = nextState
+	//
+	fmt.Println("Next State", h.NextState)
+	connection.State = State(h.NextState)
 
-	protocolVersion, cursor := dataTypes.ReadVarInt(packet)
-	h.ProtocolVersion = protocolVersion
-	fmt.Printf("Protocol Version %d (end %d)\n", protocolVersion, cursor)
-
-	somethingElse, end := dataTypes.ReadVarInt(packet[cursor:])
-	cursor += end
-	fmt.Println("Mysterious value", somethingElse)
-
-	serverAddress, end := dataTypes.ReadString(packet[cursor:])
-	cursor += end
-	h.ServerAddress = serverAddress
-	fmt.Printf("Server Address lives at %d: '%s'\n", cursor, h.ServerAddress)
-
-	fmt.Println(packet[cursor:])
-	serverPort, end := dataTypes.ReadUnsignedShort(packet[cursor:])
-	cursor += end
-	fmt.Println("Server port", serverPort)
-
-	nextState, end := dataTypes.ReadVarInt(packet[cursor:])
-	h.NextState = nextState
-
-	fmt.Println("Next State", nextState)
-	connection.State = State(nextState)
 }

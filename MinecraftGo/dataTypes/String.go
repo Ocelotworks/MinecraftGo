@@ -4,10 +4,10 @@ import (
 	"bytes"
 )
 
-func ReadString(buf []byte) (string, int) {
+func ReadString(buf []byte) (interface{}, int) {
 	stringLength, stringStart := ReadVarInt(buf)
 
-	output := string(bytes.Runes(buf[stringStart:]))[:stringLength]
+	output := string(bytes.Runes(buf[stringStart:]))[:stringLength.(int)]
 
 	return output, stringStart + len([]byte(output))
 
