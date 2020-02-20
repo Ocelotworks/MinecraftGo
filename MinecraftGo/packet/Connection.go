@@ -26,24 +26,46 @@ const (
 )
 
 var packets = map[State][]Packet{
-	HANDSHAKING: {0x00: &Handshaking{}, 0xFE: nil /*Legacy type*/},
-	STATUS:      {0x00: &StatusRequest{}, 0x01: &StatusPing{}},
-	LOGIN:       {0x00: &LoginStart{}},
-	PLAY:        {},
+	HANDSHAKING: {
+		0x00: &Handshaking{},
+	},
+	STATUS: {
+		0x00: &StatusRequest{},
+		0x01: &StatusPing{},
+	},
+	LOGIN: {
+		0x00: &LoginStart{},
+		0x0B: &PluginMessage{IsServer: true},
+		0x05: &ClientSettings{},
+	},
+	PLAY: {},
 }
 
 var dataReadMap = map[string]func(buf []byte) (interface{}, int){
 	"long":          dataTypes.ReadLong,
 	"varInt":        dataTypes.ReadVarInt,
 	"string":        dataTypes.ReadString,
+	"raw":           dataTypes.ReadRaw,
 	"unsignedShort": dataTypes.ReadUnsignedShort,
+	"bool":          dataTypes.ReadBoolean,
+	"unsignedByte":  dataTypes.ReadUnsignedByte,
+	"int":           dataTypes.ReadInt,
+	"float":         dataTypes.ReadFloat,
+	"double":        dataTypes.ReadDouble,
 }
 
 var dataWriteMap = map[string]func(interface{}) []byte{
-	"long":   dataTypes.WriteLong,
-	"varInt": dataTypes.WriteVarInt,
-	"string": dataTypes.WriteString,
-	"raw":    dataTypes.WriteRaw,
+	"long":          dataTypes.WriteLong,
+	"varInt":        dataTypes.WriteVarInt,
+	"string":        dataTypes.WriteString,
+	"raw":           dataTypes.WriteRaw,
+	"unsignedShort": dataTypes.WriteUnsignedShort,
+	"bool":          dataTypes.WriteBoolean,
+	"unsignedByte":  dataTypes.WriteUnsignedByte,
+	"int":           dataTypes.WriteInt,
+	"intArray":      dataTypes.WriteIntArray,
+	"float":         dataTypes.WriteFloat,
+	"double":        dataTypes.WriteDouble,
 }
 
 func Init(conn net.Conn, key *rsa.PrivateKey) *Connection {
@@ -94,7 +116,8 @@ func (c *Connection) Handle() {
 
 			packetBuffer := buf[cursor : cursor+length]
 
-			hex.Dump(packetBuffer)
+			fmt.Println(">>>INCOMING<<<")
+			fmt.Println(hex.Dump(packetBuffer))
 
 			c.StructScan(&packet, packetBuffer)
 			packet.Handle(packetBuffer, c)
@@ -157,16 +180,21 @@ func (c *Connection) SendPacket(packet *Packet) {
 
 		segment := dataWriteMap[tag](v.FieldByName(field.Name).Interface())
 
+		fmt.Printf("Field %s type %s coded as value %v\n", field.Name, tag, segment)
+
 		payload = append(payload, segment...)
 	}
 
-	payload = append(dataTypes.WriteVarInt(len(payload)), payload...)
 	payload = append([]byte{byte((*packet).GetPacketId())}, payload...)
-
+	actualLength := len(payload)
+	payload = append(dataTypes.WriteVarInt(len(payload)), payload...)
+	sendingLength, _ := dataTypes.ReadVarInt(payload)
+	fmt.Println("Sending Length ", sendingLength)
+	fmt.Println("Payload length ", actualLength)
 	fmt.Println("Writing to connection...")
-	num, exception := c.Conn.Write(payload)
+	_, exception := c.Conn.Write(payload)
+	fmt.Println(">>>OUTGOING<<<")
 	fmt.Println(hex.Dump(payload))
-	fmt.Println("Written ", num)
 
 	if exception != nil {
 		fmt.Println("Exception Writing ", exception)

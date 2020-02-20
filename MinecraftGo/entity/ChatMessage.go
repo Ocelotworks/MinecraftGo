@@ -10,7 +10,7 @@ type ChatMessageComponent struct {
 	Bold       *bool                   `json:"bold,omitempty"`
 	Italic     *bool                   `json:"italic,omitempty"`
 	Underlined *bool                   `json:"underlined,omitempty"`
-	Obfuscated *bool                   `json:"true,omitempty"`
+	Obfuscated *bool                   `json:"obfuscated,omitempty"`
 	Colour     *ChatMessageColour      `json:"color,omitempty"`
 	Insertion  *string                 `json:"insertion,omitempty"`
 	ClickEvent *ChatMessageClickEvent  `json:"clickEvent,omitempty"`

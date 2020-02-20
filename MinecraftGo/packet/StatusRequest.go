@@ -3,6 +3,7 @@ package packet
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"../entity"
 )
@@ -16,6 +17,7 @@ func (sr *StatusRequest) GetPacketId() int {
 func (sr *StatusRequest) Handle(packet []byte, connection *Connection) {
 	//sends the client response
 	fmt.Println("Status Request")
+	red := entity.Red
 	status := entity.ServerListPingResponse{
 		Version: entity.ServerListPingVersion{
 			Name:     "1.15.2",
@@ -29,9 +31,9 @@ func (sr *StatusRequest) Handle(packet []byte, connection *Connection) {
 				ID:   "5d8af060-129e-419c-b3ac-c0dad1c91181",
 			}},
 		},
-		Favicon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
 		Description: entity.ChatMessageComponent{
-			Text: "Hello World!",
+			Text:   time.Now().Format(time.ANSIC),
+			Colour: &red,
 		},
 	}
 

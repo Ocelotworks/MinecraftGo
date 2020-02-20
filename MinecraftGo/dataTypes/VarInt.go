@@ -1,7 +1,6 @@
 package dataTypes
 
 import (
-	"encoding/hex"
 	"fmt"
 )
 
@@ -15,7 +14,7 @@ func ReadVarInt(buf []byte) (interface{}, int) {
 		value := int32(read & 0b01111111)
 		result |= int(value << (7 * numRead))
 
-		fmt.Println(hex.EncodeToString([]byte{read}))
+		//fmt.Println(hex.EncodeToString([]byte{read}))
 
 		if numRead > 5 {
 			fmt.Println("Numread overflow")

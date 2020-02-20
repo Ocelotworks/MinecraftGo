@@ -13,6 +13,6 @@ func (sp *StatusPing) GetPacketId() int {
 func (sp *StatusPing) Handle(packet []byte, connection *Connection) {
 	//Just send the pong right back
 	fmt.Println("Pingy pongu")
-	//returnPacket := Packet(sp)
-	//connection.SendPacket(&returnPacket)
+	returnPacket := Packet(sp)
+	connection.SendPacket(&returnPacket)
 }

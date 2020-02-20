@@ -3,7 +3,7 @@ package entity
 type ServerListPingResponse struct {
 	Version     ServerListPingVersion `json:"version"`
 	Players     ServerListPingPlayers `json:"players"`
-	Favicon     string                `json:"favicon"`
+	Favicon     string                `json:"favicon,omitempty"`
 	Description ChatMessageComponent  `json:"description"`
 }
 
