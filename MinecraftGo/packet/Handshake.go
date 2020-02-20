@@ -1,6 +1,9 @@
 package packet
 
-import "fmt"
+import (
+	"encoding/hex"
+	"fmt"
+)
 
 type Handshaking struct {
 	ProtocolVersion int    `proto:"varInt"`
@@ -38,6 +41,8 @@ func (h *Handshaking) Handle(packet []byte, connection *Connection) {
 	//nextState, end := dataTypes.ReadVarInt(packet[cursor:])
 	//h.NextState = nextState
 	//
+	fmt.Println(hex.Dump(packet))
+	fmt.Printf("Connection to %s:%d Protocol Version %d\n", h.ServerAddress, h.ServerPort, h.ProtocolVersion)
 	fmt.Println("Next State", h.NextState)
 	connection.State = State(h.NextState)
 

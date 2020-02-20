@@ -15,9 +15,12 @@ func (sr *StatusRequest) GetPacketId() int {
 }
 func (sr *StatusRequest) Handle(packet []byte, connection *Connection) {
 	//sends the client response
-
+	fmt.Println("Status Request")
 	status := entity.ServerListPingResponse{
-		Version: entity.ServerListPingVersion{},
+		Version: entity.ServerListPingVersion{
+			Name:     "1.15.2",
+			Protocol: 578,
+		},
 		Players: entity.ServerListPingPlayers{
 			Max:    420,
 			Online: 69,
@@ -26,7 +29,7 @@ func (sr *StatusRequest) Handle(packet []byte, connection *Connection) {
 				ID:   "5d8af060-129e-419c-b3ac-c0dad1c91181",
 			}},
 		},
-		Favicon: "",
+		Favicon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
 		Description: entity.ChatMessageComponent{
 			Text: "Hello World!",
 		},

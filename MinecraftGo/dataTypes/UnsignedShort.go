@@ -5,5 +5,5 @@ import (
 )
 
 func ReadUnsignedShort(buf []byte) (interface{}, int) {
-	return binary.BigEndian.Uint16(buf), 3
+	return binary.BigEndian.Uint16(buf), 2
 }

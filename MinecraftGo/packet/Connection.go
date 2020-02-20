@@ -2,6 +2,7 @@ package packet
 
 import (
 	"crypto/rsa"
+	"encoding/hex"
 	"fmt"
 	"net"
 	"reflect"
@@ -32,17 +33,20 @@ var packets = map[State][]Packet{
 }
 
 var dataReadMap = map[string]func(buf []byte) (interface{}, int){
-	"long":   dataTypes.ReadLong,
-	"varInt": dataTypes.ReadVarInt,
-	"string": dataTypes.ReadString,
+	"long":          dataTypes.ReadLong,
+	"varInt":        dataTypes.ReadVarInt,
+	"string":        dataTypes.ReadString,
+	"unsignedShort": dataTypes.ReadUnsignedShort,
 }
 
 var dataWriteMap = map[string]func(interface{}) []byte{
 	"long":   dataTypes.WriteLong,
 	"varInt": dataTypes.WriteVarInt,
+	"string": dataTypes.WriteString,
 }
 
 func Init(conn net.Conn, key *rsa.PrivateKey) *Connection {
+	fmt.Println("--New Connection!")
 	newConnection := Connection{
 		State: HANDSHAKING,
 		Conn:  conn,
@@ -59,8 +63,10 @@ func (c *Connection) Handle() {
 	for {
 		// Read the incoming connection into the buffer.
 		readLength, err := c.Conn.Read(buf)
+		fmt.Println(hex.Dump(buf))
 		if err != nil {
 			fmt.Println("Error reading:", err.Error())
+			//_ = c.Conn.Close()
 			return
 		} else {
 			iLength, end := dataTypes.ReadVarInt(buf)
@@ -72,7 +78,7 @@ func (c *Connection) Handle() {
 			iPacketType, end := dataTypes.ReadVarInt(buf[end:])
 			packetType := iPacketType.(int)
 			cursor += end
-			fmt.Printf("Packet Type: %d\n", packetType)
+			fmt.Printf("State %d, Packet Type: %d\n", c.State, packetType)
 
 			if packets[c.State] == nil {
 				fmt.Println("Bad State ", c.State)
@@ -94,8 +100,8 @@ func (c *Connection) Handle() {
 }
 
 func (c *Connection) StructScan(packet *Packet, buf []byte) {
-	v := reflect.ValueOf(packet).Elem()
-	t := reflect.TypeOf(packet).Elem()
+	v := reflect.ValueOf(*packet).Elem()
+	t := reflect.TypeOf(*packet).Elem()
 
 	cursor := 0
 
@@ -110,17 +116,23 @@ func (c *Connection) StructScan(packet *Packet, buf []byte) {
 			continue
 		}
 
+		if len(buf) < cursor {
+			fmt.Println("Cursor overrun")
+			continue
+		}
 		val, end := dataReadMap[tag](buf[cursor:])
 
 		cursor += end
+		//fmt.Printf("Reading tag %s into field %s value %v cursor %d\n", tag, field.Name, val, cursor)
 
 		v.FieldByName(field.Name).Set(reflect.ValueOf(val))
 	}
 }
 
 func (c *Connection) SendPacket(packet *Packet) {
-	v := reflect.ValueOf(packet).Elem()
-	t := reflect.TypeOf(packet).Elem()
+	fmt.Println("Send packet time")
+	v := reflect.ValueOf(*packet).Elem()
+	t := reflect.TypeOf(*packet).Elem()
 
 	payload := make([]byte, 0)
 
@@ -130,19 +142,28 @@ func (c *Connection) SendPacket(packet *Packet) {
 		if !exists {
 			continue
 		}
-		if dataReadMap[tag] == nil {
+		if dataWriteMap[tag] == nil {
 			fmt.Println("Unknown tag type ", tag)
 			continue
 		}
+		val := v.FieldByName(field.Name).Interface()
+		if val == nil {
+			fmt.Println("nil value!!!", field.Name)
+			continue
+		}
 
-		segment := dataWriteMap[tag](v.FieldByName(field.Name).Elem())
+		segment := dataWriteMap[tag](v.FieldByName(field.Name).Interface())
+
 		payload = append(payload, segment...)
 	}
 
 	payload = append(dataTypes.WriteVarInt(len(payload)), payload...)
 	payload = append([]byte{byte((*packet).GetPacketId())}, payload...)
 
-	_, exception := c.Conn.Write(payload)
+	fmt.Println("Writing to connection...")
+	num, exception := c.Conn.Write(payload)
+	fmt.Println(hex.Dump(payload))
+	fmt.Println("Written ", num)
 
 	if exception != nil {
 		fmt.Println("Exception Writing ", exception)
