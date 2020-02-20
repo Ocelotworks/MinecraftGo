@@ -26,8 +26,6 @@ func ReadVarInt(buf []byte) (interface{}, int) {
 		}
 	}
 
-	fmt.Println("Read finished: ", result, numRead+1)
-
 	return result, numRead + 1
 }
 

@@ -28,7 +28,7 @@ const (
 var packets = map[State][]Packet{
 	HANDSHAKING: {0x00: &Handshaking{}, 0xFE: nil /*Legacy type*/},
 	STATUS:      {0x00: &StatusRequest{}, 0x01: &StatusPing{}},
-	LOGIN:       {},
+	LOGIN:       {0x00: &LoginStart{}},
 	PLAY:        {},
 }
 
@@ -43,6 +43,7 @@ var dataWriteMap = map[string]func(interface{}) []byte{
 	"long":   dataTypes.WriteLong,
 	"varInt": dataTypes.WriteVarInt,
 	"string": dataTypes.WriteString,
+	"raw":    dataTypes.WriteRaw,
 }
 
 func Init(conn net.Conn, key *rsa.PrivateKey) *Connection {
@@ -59,11 +60,10 @@ func Init(conn net.Conn, key *rsa.PrivateKey) *Connection {
 }
 
 func (c *Connection) Handle() {
-	buf := make([]byte, 1024)
+	buf := make([]byte, 4096)
 	for {
 		// Read the incoming connection into the buffer.
 		readLength, err := c.Conn.Read(buf)
-		fmt.Println(hex.Dump(buf))
 		if err != nil {
 			fmt.Println("Error reading:", err.Error())
 			//_ = c.Conn.Close()
@@ -93,6 +93,9 @@ func (c *Connection) Handle() {
 			packet := packets[c.State][packetType]
 
 			packetBuffer := buf[cursor : cursor+length]
+
+			hex.Dump(packetBuffer)
+
 			c.StructScan(&packet, packetBuffer)
 			packet.Handle(packetBuffer, c)
 		}
