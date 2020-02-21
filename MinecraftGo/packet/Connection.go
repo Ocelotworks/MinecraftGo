@@ -8,12 +8,14 @@ import (
 	"reflect"
 
 	"../dataTypes"
+	"../entity"
 )
 
 type Connection struct {
-	State State
-	Conn  net.Conn
-	Key   *rsa.PrivateKey
+	State     State
+	Conn      net.Conn
+	Key       *rsa.PrivateKey
+	Minecraft entity.Minecraft
 }
 
 type State int
@@ -35,10 +37,11 @@ var packets = map[State][]Packet{
 	},
 	LOGIN: {
 		0x00: &LoginStart{},
+	},
+	PLAY: {
 		0x0B: &PluginMessage{IsServer: true},
 		0x05: &ClientSettings{},
 	},
-	PLAY: {},
 }
 
 var dataReadMap = map[string]func(buf []byte) (interface{}, int){
@@ -68,12 +71,13 @@ var dataWriteMap = map[string]func(interface{}) []byte{
 	"double":        dataTypes.WriteDouble,
 }
 
-func Init(conn net.Conn, key *rsa.PrivateKey) *Connection {
+func Init(conn net.Conn, key *rsa.PrivateKey, minecraft entity.Minecraft) *Connection {
 	fmt.Println("--New Connection!")
 	newConnection := Connection{
-		State: HANDSHAKING,
-		Conn:  conn,
-		Key:   key,
+		State:     HANDSHAKING,
+		Conn:      conn,
+		Key:       key,
+		Minecraft: minecraft,
 	}
 
 	go newConnection.Handle()
@@ -88,7 +92,8 @@ func (c *Connection) Handle() {
 		readLength, err := c.Conn.Read(buf)
 		if err != nil {
 			fmt.Println("Error reading:", err.Error())
-			//_ = c.Conn.Close()
+			_ = c.Conn.Close()
+
 			return
 		} else {
 			iLength, end := dataTypes.ReadVarInt(buf)

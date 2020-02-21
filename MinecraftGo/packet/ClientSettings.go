@@ -3,6 +3,7 @@ package packet
 import (
 	"bytes"
 	"fmt"
+
 	"github.com/Tnze/go-mc/nbt"
 )
 

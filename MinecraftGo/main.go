@@ -6,10 +6,13 @@ import (
 	"fmt"
 	"net"
 
+	"./entity"
 	"./packet"
 )
 
 var keyPair *rsa.PrivateKey
+
+var minecraft entity.Minecraft
 
 func main() {
 
@@ -28,6 +31,17 @@ func main() {
 		return
 	}
 
+	purple := entity.Purple
+	minecraft = entity.Minecraft{
+		Connections: make([]*packet.Connection, 0),
+		ServerName: entity.ChatMessageComponent{
+			Text:   "Petecraft",
+			Colour: &purple,
+		},
+		MaxPlayers:       0,
+		EnableEncryption: false,
+	}
+
 	keyPair = key
 
 	fmt.Println("Listening on port 25565")
@@ -44,5 +58,5 @@ func main() {
 }
 
 func handleConnection(connection net.Conn) {
-	packet.Init(connection, keyPair)
+	minecraft.Connections = append(minecraft.Connections, packet.Init(connection, keyPair, minecraft))
 }
