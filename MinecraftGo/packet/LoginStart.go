@@ -1,7 +1,6 @@
 package packet
 
 import (
-	"crypto/x509"
 	"fmt"
 
 	"../dataTypes"
@@ -18,23 +17,21 @@ func (ls *LoginStart) GetPacketId() int {
 func (ls *LoginStart) Handle(packet []byte, connection *Connection) {
 	fmt.Println("Username ", ls.Username)
 
-	fmt.Println(connection.Key.PublicKey)
-
-	publicKey := x509.MarshalPKCS1PublicKey(&connection.Key.PublicKey)
-
-	//publicKey, _ := asn1.Marshal(connection.Key.PublicKey)
-
-	encryptionPacket := Packet(&EncryptionRequest{
-		ServerID:          "",
-		PublicKeyLength:   len(publicKey),
-		PublicKey:         publicKey,
-		VerifyTokenLength: 4,
-		VerifyToken:       []byte{0x01, 0x02, 0x03, 0x04},
-	})
-
-	connection.SendPacket(&encryptionPacket)
-
-	return
+	//fmt.Println(connection.Key.PublicKey)
+	//
+	//publicKey := x509.MarshalPKCS1PublicKey(&connection.Key.PublicKey)
+	//
+	////publicKey, _ := asn1.Marshal(connection.Key.PublicKey)
+	//
+	//encryptionPacket := Packet(&EncryptionRequest{
+	//	ServerID:          "",
+	//	PublicKeyLength:   len(publicKey),
+	//	PublicKey:         publicKey,
+	//	VerifyTokenLength: 4,
+	//	VerifyToken:       []byte{0x01, 0x02, 0x03, 0x04},
+	//})
+	//
+	//connection.SendPacket(&encryptionPacket)
 
 	returnPacket := Packet(&LoginSuccess{
 		UUID:     "5d8af060-129e-419c-b3ac-c0dad1c91181",

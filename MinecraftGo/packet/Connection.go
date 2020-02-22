@@ -93,7 +93,13 @@ func (c *Connection) Handle() {
 		if err != nil {
 			fmt.Println("Error reading:", err.Error())
 			_ = c.Conn.Close()
-
+			//for i, conn := range c.Minecraft.Connections {
+			//	if conn == c {
+			//		c.Minecraft.Connections[i] = c.Minecraft.Connections[len(c.Minecraft.Connections)-1]
+			//		c.Minecraft.Connections = c.Minecraft.Connections[:len(c.Minecraft.Connections)-1]
+			//		break
+			//	}
+			//}
 			return
 		} else {
 			iLength, end := dataTypes.ReadVarInt(buf)

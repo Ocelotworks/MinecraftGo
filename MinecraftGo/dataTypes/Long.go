@@ -23,3 +23,12 @@ func WriteLong(long interface{}) []byte {
 	binary.BigEndian.PutUint64(b, uint64(long.(int64)))
 	return b
 }
+
+func WriteLongArray(input interface{}) []byte {
+	arr := input.([]int64)
+	output := make([]byte, 0)
+	for _, val := range arr {
+		output = append(output, WriteLong(val)...)
+	}
+	return output
+}

@@ -33,12 +33,12 @@ func main() {
 
 	purple := entity.Purple
 	minecraft = entity.Minecraft{
-		Connections: make([]*packet.Connection, 0),
+		//Connections: make([]*packet.Connection, 0),
 		ServerName: entity.ChatMessageComponent{
 			Text:   "Petecraft",
 			Colour: &purple,
 		},
-		MaxPlayers:       0,
+		MaxPlayers:       255,
 		EnableEncryption: false,
 	}
 
@@ -58,5 +58,6 @@ func main() {
 }
 
 func handleConnection(connection net.Conn) {
-	minecraft.Connections = append(minecraft.Connections, packet.Init(connection, keyPair, minecraft))
+	packet.Init(connection, keyPair, minecraft)
+	//minecraft.Connections = append(minecraft.Connections,)
 }

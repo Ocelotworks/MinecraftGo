@@ -43,3 +43,12 @@ func WriteVarInt(value interface{}) []byte {
 		}
 	}
 }
+
+func WriteVarIntArray(input interface{}) []byte {
+	arr := input.([]int)
+	output := make([]byte, 0)
+	for _, val := range arr {
+		output = append(output, WriteVarInt(val)...)
+	}
+	return output
+}
