@@ -15,10 +15,9 @@ func WriteFloat(input interface{}) []byte {
 }
 
 func ReadDouble(buf []byte) (interface{}, int) {
-	slice := buf[:8]
-	return math.Float64frombits(binary.BigEndian.Uint64(slice)), 9
+	return math.Float64frombits(binary.BigEndian.Uint64(buf[:8])), 8
 }
 
 func WriteDouble(input interface{}) []byte {
-	return WriteInt(int(math.Float64bits(input.(float64))))
+	return WriteLong(int64(math.Float64bits(input.(float64))))
 }

@@ -1,9 +1,10 @@
 package packet
 
 import (
-	"fmt"
-
 	"../dataTypes"
+	"../entity"
+	"fmt"
+	"github.com/gofrs/uuid"
 )
 
 type LoginStart struct {
@@ -41,12 +42,21 @@ func (ls *LoginStart) Handle(packet []byte, connection *Connection) {
 
 	connection.State = PLAY
 
+	connection.Player = &entity.Player{
+		Username: ls.Username,
+		X:        5,
+		Y:        255,
+		Z:        5,
+		EntityID: connection.Minecraft.ConnectedPlayers,
+		UUID:     uuid.NewV3(uuid.Nil, "OfflinePlayer:"+ls.Username).Bytes(),
+	}
+
 	joinGame := Packet(&JoinGame{
-		EntityID:            120,
+		EntityID:            connection.Player.EntityID,
 		Gamemode:            0,
 		Dimension:           0,
 		HashedSeed:          71495747907944700,
-		MaxPlayers:          128,
+		MaxPlayers:          byte(connection.Minecraft.MaxPlayers),
 		LevelType:           "default",
 		ViewDistance:        32,
 		ReducedDebugInfo:    false,

@@ -2,20 +2,22 @@ package packet
 
 import (
 	"crypto/rsa"
-	"encoding/hex"
 	"fmt"
 	"net"
 	"reflect"
+	"time"
 
 	"../dataTypes"
 	"../entity"
 )
 
 type Connection struct {
-	State     State
-	Conn      net.Conn
-	Key       *rsa.PrivateKey
-	Minecraft entity.Minecraft
+	State       State
+	Conn        net.Conn
+	Key         *rsa.PrivateKey
+	Minecraft   *Minecraft
+	Player      *entity.Player
+	KeepAliveID int64
 }
 
 type State int
@@ -39,8 +41,17 @@ var packets = map[State][]Packet{
 		0x00: &LoginStart{},
 	},
 	PLAY: {
-		0x0B: &PluginMessage{IsServer: true},
+		0x00: &TeleportConfirm{},
 		0x05: &ClientSettings{},
+		0x0B: &PluginMessage{IsServer: true},
+		0x0F: &KeepAlive{},
+		0x11: &PlayerPosition{},
+		0x12: &PlayerPositionAndRotation{},
+		0x13: &PlayerRotation{},
+		0x14: &PlayerMovement{},
+		0x1A: &PlayerDigging{},
+		0x23: &HeldItemChange{IsServer: true},
+		0x2A: &Animation{},
 	},
 }
 
@@ -49,12 +60,14 @@ var dataReadMap = map[string]func(buf []byte) (interface{}, int){
 	"varInt":        dataTypes.ReadVarInt,
 	"string":        dataTypes.ReadString,
 	"raw":           dataTypes.ReadRaw,
+	"short":         dataTypes.ReadShort,
 	"unsignedShort": dataTypes.ReadUnsignedShort,
 	"bool":          dataTypes.ReadBoolean,
 	"unsignedByte":  dataTypes.ReadUnsignedByte,
 	"int":           dataTypes.ReadInt,
 	"float":         dataTypes.ReadFloat,
 	"double":        dataTypes.ReadDouble,
+	"uuid":          dataTypes.ReadUUID,
 }
 
 var dataWriteMap = map[string]func(interface{}) []byte{
@@ -62,6 +75,7 @@ var dataWriteMap = map[string]func(interface{}) []byte{
 	"varInt":        dataTypes.WriteVarInt,
 	"string":        dataTypes.WriteString,
 	"raw":           dataTypes.WriteRaw,
+	"short":         dataTypes.WriteShort,
 	"unsignedShort": dataTypes.WriteUnsignedShort,
 	"bool":          dataTypes.WriteBoolean,
 	"unsignedByte":  dataTypes.WriteUnsignedByte,
@@ -69,15 +83,17 @@ var dataWriteMap = map[string]func(interface{}) []byte{
 	"intArray":      dataTypes.WriteIntArray,
 	"float":         dataTypes.WriteFloat,
 	"double":        dataTypes.WriteDouble,
+	"uuid":          dataTypes.WriteUUID,
 }
 
-func Init(conn net.Conn, key *rsa.PrivateKey, minecraft entity.Minecraft) *Connection {
+func Init(conn net.Conn, key *rsa.PrivateKey, minecraft *Minecraft) *Connection {
 	fmt.Println("--New Connection!")
 	newConnection := Connection{
-		State:     HANDSHAKING,
-		Conn:      conn,
-		Key:       key,
-		Minecraft: minecraft,
+		State:       HANDSHAKING,
+		Conn:        conn,
+		Key:         key,
+		Minecraft:   minecraft,
+		KeepAliveID: 0,
 	}
 
 	go newConnection.Handle()
@@ -85,28 +101,50 @@ func Init(conn net.Conn, key *rsa.PrivateKey, minecraft entity.Minecraft) *Conne
 	return &newConnection
 }
 
+func (c *Connection) sendKeepAlive() {
+	for {
+		//fmt.Println("Waiting")
+		<-time.After(15 * time.Second)
+		fmt.Println("Sending keepalive")
+		keepAlive := Packet(&KeepAlive{
+			ID: c.KeepAliveID,
+		})
+
+		c.KeepAliveID++
+
+		exception := c.SendPacket(&keepAlive)
+		if exception != nil {
+			fmt.Println("client has probably gone away")
+			break
+		}
+	}
+}
+
 func (c *Connection) Handle() {
 	buf := make([]byte, 4096)
 	for {
 		// Read the incoming connection into the buffer.
-		readLength, err := c.Conn.Read(buf)
+		_, err := c.Conn.Read(buf)
 		if err != nil {
-			fmt.Println("Error reading:", err.Error())
+			//fmt.Println("Error reading:", err.Error())
 			_ = c.Conn.Close()
-			//for i, conn := range c.Minecraft.Connections {
-			//	if conn == c {
-			//		c.Minecraft.Connections[i] = c.Minecraft.Connections[len(c.Minecraft.Connections)-1]
-			//		c.Minecraft.Connections = c.Minecraft.Connections[:len(c.Minecraft.Connections)-1]
-			//		break
-			//	}
-			//}
+			if c.Player != nil {
+				c.Minecraft.ConnectedPlayers--
+			}
+			for i, conn := range c.Minecraft.Connections {
+				if conn == c {
+					c.Minecraft.Connections[i] = c.Minecraft.Connections[len(c.Minecraft.Connections)-1]
+					c.Minecraft.Connections = c.Minecraft.Connections[:len(c.Minecraft.Connections)-1]
+					break
+				}
+			}
 			return
 		} else {
 			iLength, end := dataTypes.ReadVarInt(buf)
 			length := iLength.(int)
 			cursor := end
 
-			fmt.Printf("Read length: %d, Reported Length: %d\n", readLength, length)
+			//fmt.Printf("Read length: %d, Reported Length: %d\n", readLength, length)
 
 			iPacketType, end := dataTypes.ReadVarInt(buf[end:])
 			packetType := iPacketType.(int)
@@ -114,12 +152,12 @@ func (c *Connection) Handle() {
 			fmt.Printf("State %d, Packet Type: %d\n", c.State, packetType)
 
 			if packets[c.State] == nil {
-				fmt.Println("Bad State ", c.State)
+				fmt.Println("!!! Bad State ", c.State)
 				continue
 			}
 
-			if packets[c.State][packetType] == nil {
-				fmt.Println("Bad Packet Type ", packetType)
+			if len(packets[c.State]) < packetType || packets[c.State][packetType] == nil {
+				fmt.Printf("!!! Bad Packet Type 0x%X\n", packetType)
 				continue
 			}
 
@@ -127,8 +165,8 @@ func (c *Connection) Handle() {
 
 			packetBuffer := buf[cursor : cursor+length]
 
-			fmt.Println(">>>INCOMING<<<")
-			fmt.Println(hex.Dump(packetBuffer))
+			//fmt.Println(">>>INCOMING<<<")
+			//fmt.Println(hex.Dump(packetBuffer))
 
 			c.StructScan(&packet, packetBuffer)
 			packet.Handle(packetBuffer, c)
@@ -149,12 +187,12 @@ func (c *Connection) StructScan(packet *Packet, buf []byte) {
 			continue
 		}
 		if dataReadMap[tag] == nil {
-			fmt.Println("Unknown tag type ", tag)
+			//fmt.Println("!!! Unknown tag type ", tag)
 			continue
 		}
 
 		if len(buf) < cursor {
-			fmt.Println("Cursor overrun")
+			//fmt.Println("Cursor overrun")
 			continue
 		}
 		val, end := dataReadMap[tag](buf[cursor:])
@@ -166,10 +204,9 @@ func (c *Connection) StructScan(packet *Packet, buf []byte) {
 	}
 }
 
-func (c *Connection) SendPacket(packet *Packet) {
-	fmt.Println("Send packet time")
-	v := reflect.ValueOf(*packet).Elem()
-	t := reflect.TypeOf(*packet).Elem()
+func UnmarshalData(input interface{}) []byte {
+	v := reflect.ValueOf(input).Elem()
+	t := reflect.TypeOf(input).Elem()
 
 	payload := make([]byte, 0)
 
@@ -179,36 +216,71 @@ func (c *Connection) SendPacket(packet *Packet) {
 		if !exists {
 			continue
 		}
-		if dataWriteMap[tag] == nil {
-			fmt.Println("Unknown tag type ", tag)
-			continue
-		}
+
 		val := v.FieldByName(field.Name).Interface()
 		if val == nil {
 			fmt.Println("nil value!!!", field.Name)
 			continue
 		}
 
-		segment := dataWriteMap[tag](v.FieldByName(field.Name).Interface())
+		var segment []byte
 
-		fmt.Printf("Field %s type %s coded as value %v\n", field.Name, tag, segment)
+		if tag == "playerArray" {
+			playerData := val.([]Player)
+			segment = dataTypes.WriteVarInt(len(playerData))
+			fmt.Println("Player Data Array Length ", len(playerData))
+			for _, player := range playerData {
+				segment = append(segment, UnmarshalData(&player)...)
+			}
+		} else if tag == "playerPropertiesArray" {
+			playerProperties := val.([]PlayerProperty)
+			fmt.Println("Player Property Array Length ", len(playerProperties))
+			segment = dataTypes.WriteVarInt(len(playerProperties))
+			if len(playerProperties) > 0 {
+				for _, playerProperty := range playerProperties {
+					segment = append(segment, UnmarshalData(&playerProperty)...)
+				}
+			}
+		} else {
+			if dataWriteMap[tag] == nil {
+				fmt.Println("!!!! Unknown tag type ", tag)
+				continue
+			}
+
+			segment = dataWriteMap[tag](v.FieldByName(field.Name).Interface())
+		}
+		//if len(segment) < 100 {
+		//	fmt.Printf("Field %s type %s coded as value %v (Between  %d - %d)\n", field.Name, tag, val, len(payload), len(payload)+len(segment))
+		//}else{
+		//	fmt.Printf("Field %s type %s coded as value [Big value] (Between  %d - %d)\n", field.Name, tag, len(payload), len(payload)+len(segment))
+		//}
 
 		payload = append(payload, segment...)
 	}
 
+	return payload
+}
+
+func (c *Connection) SendPacket(packet *Packet) error {
+	fmt.Println("Send packet time")
+	payload := UnmarshalData(*packet)
+
 	payload = append([]byte{byte((*packet).GetPacketId())}, payload...)
-	actualLength := len(payload)
+	_ = len(payload)
 	payload = append(dataTypes.WriteVarInt(len(payload)), payload...)
-	sendingLength, _ := dataTypes.ReadVarInt(payload)
-	fmt.Println("Sending Length ", sendingLength)
-	fmt.Println("Payload length ", actualLength)
-	fmt.Println("Writing to connection...")
+	_, _ = dataTypes.ReadVarInt(payload)
+	//fmt.Println("Sending Length ", sendingLength)
+	//fmt.Println("Payload length ", actualLength)
+	//fmt.Println("Writing to connection...")
 	_, exception := c.Conn.Write(payload)
-	fmt.Println(">>>OUTGOING<<<")
-	fmt.Println(hex.Dump(payload))
+	//if len(payload) < 1024 {
+	//	fmt.Println(">>>OUTGOING<<<")
+	//	fmt.Println(hex.Dump(payload))
+	//}
 
 	if exception != nil {
-		fmt.Println("Exception Writing ", exception)
+		//fmt.Println("Exception Writing ", exception)
+		return exception
 	}
-
+	return nil
 }

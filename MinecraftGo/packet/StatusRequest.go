@@ -22,7 +22,7 @@ func (sr *StatusRequest) Handle(packet []byte, connection *Connection) {
 		},
 		Players: entity.ServerListPingPlayers{
 			Max:    connection.Minecraft.MaxPlayers,
-			Online: 1,
+			Online: connection.Minecraft.ConnectedPlayers,
 			Sample: []entity.ServerListPingPlayerListItem{{
 				Name: "UnacceptableUse",
 				ID:   "5d8af060-129e-419c-b3ac-c0dad1c91181",

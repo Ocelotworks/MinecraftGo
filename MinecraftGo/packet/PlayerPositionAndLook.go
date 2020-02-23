@@ -1,5 +1,7 @@
 package packet
 
+import "fmt"
+
 type PlayerPositionAndLook struct {
 	X          float64 `proto:"double"`
 	Y          float64 `proto:"double"`
@@ -16,4 +18,6 @@ func (ppal *PlayerPositionAndLook) GetPacketId() int {
 
 func (ppal *PlayerPositionAndLook) Handle(packet []byte, connection *Connection) {
 	//TODO: Handle
+	fmt.Println("Player Position And Look ", ppal)
+
 }

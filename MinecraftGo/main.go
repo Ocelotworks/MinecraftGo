@@ -1,22 +1,37 @@
 package main
 
 import (
+	"./packet"
 	"crypto/rand"
 	"crypto/rsa"
 	"fmt"
 	"net"
-
-	"./entity"
-	"./packet"
 )
 
 var keyPair *rsa.PrivateKey
 
-var minecraft entity.Minecraft
+var minecraft *packet.Minecraft
 
 func main() {
 
-	listener, exception := net.Listen("tcp", "localhost:25565")
+	//inData, exception := ioutil.ReadFile("nbt-test/bigtest.nbt")
+	//
+	//if exception != nil {
+	//	fmt.Println("Reading file")
+	//	fmt.Println(exception)
+	//	return
+	//}
+	//
+	//read, _ := dataTypes.ReadNBT(inData)
+	//write := dataTypes.NBTWriteCompound(read)
+	//
+	//readAgain, _ := dataTypes.ReadNBT(write)
+	//fmt.Println("Original: ",read)
+	//fmt.Println("New:", readAgain)
+	//
+	//return
+
+	listener, exception := net.Listen("tcp", ":25565")
 
 	if exception != nil {
 		fmt.Println(exception)
@@ -31,18 +46,9 @@ func main() {
 		return
 	}
 
-	purple := entity.Purple
-	minecraft = entity.Minecraft{
-		//Connections: make([]*packet.Connection, 0),
-		ServerName: entity.ChatMessageComponent{
-			Text:   "Petecraft",
-			Colour: &purple,
-		},
-		MaxPlayers:       255,
-		EnableEncryption: false,
-	}
-
 	keyPair = key
+
+	minecraft = packet.CreateMinecraft()
 
 	fmt.Println("Listening on port 25565")
 
@@ -58,6 +64,5 @@ func main() {
 }
 
 func handleConnection(connection net.Conn) {
-	packet.Init(connection, keyPair, minecraft)
-	//minecraft.Connections = append(minecraft.Connections,)
+	minecraft.Connections = append(minecraft.Connections, packet.Init(connection, keyPair, minecraft))
 }

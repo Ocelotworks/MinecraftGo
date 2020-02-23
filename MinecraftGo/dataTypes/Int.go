@@ -5,7 +5,7 @@ import "encoding/binary"
 func ReadInt(buf []byte) (interface{}, int) {
 	slice := buf[:4]
 
-	return int(binary.BigEndian.Uint32(slice)), 5
+	return int(binary.BigEndian.Uint32(slice)), 4
 }
 
 func WriteInt(input interface{}) []byte {

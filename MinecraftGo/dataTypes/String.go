@@ -2,6 +2,7 @@ package dataTypes
 
 import (
 	"bytes"
+	"fmt"
 )
 
 func ReadString(buf []byte) (interface{}, int) {
@@ -17,8 +18,8 @@ func WriteString(input interface{}) []byte {
 	b := []byte(input.(string))
 
 	output := WriteVarInt(len(b))
-	//fmt.Println("String Length ", len(b))
-	//fmt.Println(output)
+	fmt.Println("String Length ", len(b))
+	fmt.Println(output)
 	output = append(output, b...)
 	return output
 }
