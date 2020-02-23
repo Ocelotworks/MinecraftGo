@@ -1,17 +1,20 @@
 package packet
 
 import (
+	"../dataTypes"
 	"../entity"
 	"encoding/json"
 	"fmt"
+	"github.com/gofrs/uuid"
 )
 
 type Minecraft struct {
-	Connections      []*Connection
-	ServerName       entity.ChatMessageComponent
-	ConnectedPlayers int
-	MaxPlayers       int
-	EnableEncryption bool
+	Connections          []*Connection
+	ServerName           entity.ChatMessageComponent
+	ConnectedPlayers     int
+	MaxPlayers           int
+	EnableEncryption     bool
+	CompressionThreshold int
 }
 
 func CreateMinecraft() *Minecraft {
@@ -22,9 +25,10 @@ func CreateMinecraft() *Minecraft {
 			Text:   "Petecraft",
 			Colour: &purple,
 		},
-		MaxPlayers:       255,
-		ConnectedPlayers: 0,
-		EnableEncryption: false,
+		MaxPlayers:           255,
+		ConnectedPlayers:     0,
+		EnableEncryption:     true,
+		CompressionThreshold: -1,
 	}
 }
 
@@ -112,60 +116,22 @@ func (mc *Minecraft) UpdatePlayerPosition(connection *Connection, newX float64, 
 func (mc *Minecraft) PlayerJoin(connection *Connection) {
 	mc.ConnectedPlayers++
 
-	playerDisplayName := entity.ChatMessageComponent{
-		Text: connection.Player.Username,
-	}
+	currentPlayersPacket := Packet(&PlayerInfoAddPlayer{
+		Action:  0,
+		Players: []entity.Player{*connection.Player},
+	})
 
-	playerDisplayNameJson, exception := json.Marshal(playerDisplayName)
+	mc.SendToAllExcept(connection, &currentPlayersPacket)
 
-	if exception != nil {
-		fmt.Println("Marshalling player username")
-		fmt.Println(exception)
-	} else {
-		currentPlayersPacket := Packet(&PlayerInfoAddPlayer{
-			Action: 0,
-			Players: []Player{
-				{
-					UUID:           connection.Player.UUID,
-					Username:       connection.Player.Username,
-					Properties:     []PlayerProperty{},
-					Gamemode:       0,
-					Ping:           0,
-					HasDisplayname: true,
-					DisplayName:    string(playerDisplayNameJson),
-				},
-			},
-		})
-
-		mc.SendToAllExcept(connection, &currentPlayersPacket)
-	}
-
-	currentPlayers := make([]Player, 0)
+	currentPlayers := make([]entity.Player, 0)
 	for _, con := range mc.Connections {
 		if con.Player == nil {
 			continue
 		}
-		playerDisplayName := entity.ChatMessageComponent{
-			Text: con.Player.Username,
-		}
-
-		playerDisplayNameJson, exception := json.Marshal(playerDisplayName)
-
-		if exception != nil {
-			fmt.Println(exception)
-			continue
-		}
-		currentPlayers = append(currentPlayers, Player{
-			UUID:           con.Player.UUID,
-			Username:       con.Player.Username,
-			Properties:     []PlayerProperty{},
-			Gamemode:       0,
-			Ping:           0,
-			HasDisplayname: true,
-			DisplayName:    string(playerDisplayNameJson),
-		})
+		currentPlayers = append(currentPlayers, *con.Player)
 	}
-	currentPlayersPacket := Packet(&PlayerInfoAddPlayer{
+
+	currentPlayersPacket = Packet(&PlayerInfoAddPlayer{
 		Action:  0,
 		Players: currentPlayers,
 	})
@@ -185,7 +151,6 @@ func (mc *Minecraft) PlayerJoin(connection *Connection) {
 			Yaw:      byte(con.Player.Yaw),
 			Pitch:    byte(con.Player.Pitch),
 		})
-		fmt.Println("Spawning player ", con.Player.Username, "Entity ID ", con.Player.EntityID, " -- Our entity ID is ", connection.Player.EntityID)
 		connection.SendPacket(&packet)
 	}
 
@@ -200,6 +165,21 @@ func (mc *Minecraft) PlayerJoin(connection *Connection) {
 	})
 	mc.SendToAllExcept(connection, &packet)
 
+	yellow := entity.Yellow
+	chatMessageComponents := []entity.ChatMessageComponent{
+		{
+			Text:   connection.Player.Username,
+			Colour: &yellow,
+		},
+	}
+
+	chatMessage := entity.ChatMessage{
+		Translate: "multiplayer.player.joined",
+		With:      &chatMessageComponents,
+	}
+
+	go mc.SendMessage(1, chatMessage)
+
 	go connection.sendKeepAlive()
 }
 
@@ -210,4 +190,93 @@ func (mc *Minecraft) SendToAllExcept(connection *Connection, packet *Packet) {
 		}
 		con.SendPacket(packet)
 	}
+}
+
+func (mc *Minecraft) SendToAll(packet *Packet) {
+	for _, con := range mc.Connections {
+		if con.Player == nil {
+			continue
+		}
+		con.SendPacket(packet)
+	}
+}
+
+func (mc *Minecraft) StartPlayerJoin(connection *Connection) {
+	if connection.Minecraft.CompressionThreshold > 0 {
+		compressionPacket := Packet(&SetCompression{
+			Threshold: connection.Minecraft.CompressionThreshold,
+		})
+		connection.SendPacket(&compressionPacket)
+		connection.EnableCompression = true
+	}
+
+	stringUUID, exception := uuid.FromBytes(connection.Player.UUID)
+
+	if exception != nil {
+		fmt.Println("Malformed UUID? ", exception)
+		return
+	}
+
+	returnPacket := Packet(&LoginSuccess{
+		UUID:     stringUUID.String(),
+		Username: connection.Player.Username,
+	})
+
+	connection.SendPacket(&returnPacket)
+
+	connection.State = PLAY
+
+	joinGame := Packet(&JoinGame{
+		EntityID:            connection.Player.EntityID,
+		Gamemode:            0,
+		Dimension:           0,
+		HashedSeed:          71495747907944700,
+		MaxPlayers:          byte(connection.Minecraft.MaxPlayers),
+		LevelType:           "default",
+		ViewDistance:        32,
+		ReducedDebugInfo:    false,
+		EnableRespawnScreen: true,
+	})
+
+	connection.SendPacket(&joinGame)
+
+	pluginMessage := Packet(&PluginMessage{
+		IsServer:   false,
+		Identifier: "minecraft:brand",
+		ByteArray:  dataTypes.WriteString("BigPMC"),
+	})
+
+	connection.SendPacket(&pluginMessage)
+
+	difficulty := Packet(&ServerDifficulty{
+		Difficulty:       0,
+		DifficultyLocked: false,
+	})
+
+	connection.SendPacket(&difficulty)
+}
+
+func (mc *Minecraft) SendMessage(messageType byte, message entity.ChatMessage) {
+	chatMessageJson, exception := json.Marshal(message)
+
+	if exception != nil {
+		fmt.Println(exception)
+		return
+	}
+
+	chatPacket := Packet(&ChatMessage{
+		ChatData: string(chatMessageJson),
+		Position: messageType,
+	})
+
+	for _, con := range mc.Connections {
+		if con.Player == nil {
+			continue
+		}
+		chatMode := con.Player.Settings.ChatMode
+		if messageType == 2 || chatMode == 0 || (chatMode == 1 && messageType == 1) {
+			con.SendPacket(&chatPacket)
+		}
+	}
+
 }

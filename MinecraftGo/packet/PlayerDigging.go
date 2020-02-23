@@ -16,13 +16,14 @@ func (pd *PlayerDigging) Handle(packet []byte, connection *Connection) {
 	//TODO: Handle
 	fmt.Println("Player Digging", pd)
 
-	acknowledge := Packet(&AcknowledgePlayerDigging{
-		Location:   pd.Location,
-		Block:      0,
-		Status:     pd.Status,
-		Successful: true,
-	})
-
-	connection.SendPacket(&acknowledge)
+	if pd.Status == 2 {
+		acknowledge := Packet(&AcknowledgePlayerDigging{
+			Location:   pd.Location,
+			Block:      0,
+			Status:     pd.Status,
+			Successful: true,
+		})
+		connection.SendPacket(&acknowledge)
+	}
 
 }

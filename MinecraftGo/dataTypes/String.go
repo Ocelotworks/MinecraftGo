@@ -1,7 +1,9 @@
 package dataTypes
 
 import (
+	"../entity"
 	"bytes"
+	"encoding/json"
 	"fmt"
 )
 
@@ -15,7 +17,14 @@ func ReadString(buf []byte) (interface{}, int) {
 }
 
 func WriteString(input interface{}) []byte {
-	b := []byte(input.(string))
+	var b []byte
+	switch input.(type) {
+	case entity.ChatMessageComponent:
+		b, _ = json.Marshal(input)
+		break
+	case string:
+		b = []byte(input.(string))
+	}
 
 	output := WriteVarInt(len(b))
 	fmt.Println("String Length ", len(b))

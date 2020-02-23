@@ -15,7 +15,7 @@ func ReadLong(buf []byte) (interface{}, int) {
 		fmt.Println("Exception reading long:", exception)
 	}
 
-	return output, 9
+	return output, 8
 }
 
 func WriteLong(long interface{}) []byte {

@@ -1,7 +1,7 @@
 package dataTypes
 
 func ReadBoolean(buf []byte) (interface{}, int) {
-	return buf[0] == 1, 2
+	return buf[0] == 1, 1
 }
 
 func WriteBoolean(input interface{}) []byte {
