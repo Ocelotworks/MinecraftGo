@@ -14,7 +14,7 @@ var minecraft *packet.Minecraft
 
 func main() {
 
-	//inData, exception := ioutil.ReadFile("nbt-test/bigtest.nbt")
+	//inData, exception := ioutil.ReadFile("world/region/r.0.0.mca")
 	//
 	//if exception != nil {
 	//	fmt.Println("Reading file")
@@ -22,15 +22,15 @@ func main() {
 	//	return
 	//}
 	//
-	//read, _ := dataTypes.ReadNBT(inData)
-	//write := dataTypes.NBTWriteCompound(read)
+	//region := dataTypes.ReadRegionFile(inData)
 	//
-	//readAgain, _ := dataTypes.ReadNBT(write)
-	//fmt.Println("Original: ",read)
-	//fmt.Println("New:", readAgain)
+	//chunk := region.Chunks[0]
+	//
+	//output, _ := json.Marshal(dataTypes.NBTAsMap(chunk.Data))
+	//fmt.Println("Chunky chunk")
+	//fmt.Println(string(output))
 	//
 	//return
-
 	listener, exception := net.Listen("tcp", ":25565")
 
 	if exception != nil {

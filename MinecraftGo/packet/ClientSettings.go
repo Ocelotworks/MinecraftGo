@@ -4,7 +4,9 @@ import (
 	"../dataTypes"
 	"../entity"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math"
 	"math/rand"
 )
@@ -57,12 +59,12 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 
 	randomBiomes := make([]int, 1024)
 	for i := 0; i < 1024; i++ {
-		randomBiomes[i] = 1
+		randomBiomes[i] = i % 10
 	}
 
 	randomHeightMap := make([]int64, 36)
 	for i := 0; i < 36; i++ {
-		randomHeightMap[i] = int64(255)
+		randomHeightMap[i] = int64(i)
 	}
 
 	heightMaps := dataTypes.NBTWrite(dataTypes.NBTNamed{
@@ -83,6 +85,32 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 
 	fmt.Println(hex.Dump(heightMaps))
 
+	inData, exception := ioutil.ReadFile("world/region/r.0.0.mca")
+
+	if exception != nil {
+		fmt.Println("Reading file")
+		fmt.Println(exception)
+		return
+	}
+
+	region := dataTypes.ReadRegionFile(inData)
+
+	chunk := region.Chunks[0]
+
+	nbtMap := dataTypes.NBTAsMap(chunk.Data)
+
+	asJson, exception := json.Marshal(nbtMap)
+
+	fmt.Println("As json:")
+	fmt.Println(string(asJson))
+
+	//output := nbtMap.(map[string]interface{})["Unnamed"].(map[string]interface{})["Compound_0"]
+	//level := output.(map[string]interface{})["Level"].(map[string]interface{})["Compound_0"].(map[string]interface{})
+
+	//palette := level["Sections"].(map[string]interface{})["List-0"].(map[string]interface{})["Compound_1"].(map[string]interface{})
+
+	//biomes := level["Biomes"].([]uint8)
+
 	for x := 0; x < 7; x++ {
 		for y := 0; y < 7; y++ {
 			chunkSections := make([]dataTypes.NetChunkSection, 32)
@@ -93,9 +121,9 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 				}
 
 				chunkSections[i] = dataTypes.NetChunkSection{
-					BlockCount:   4096,
-					BitsPerBlock: byte(x % 8),
-					Palette:      []int{1 + x + y, x + 2, x + 3, x + 4, x + 5, x + 6, x + 7, x + 8, x + 9},
+					BlockCount:   1,
+					BitsPerBlock: 4,
+					Palette:      []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
 					DataArray:    randomBlocks,
 				}
 			}

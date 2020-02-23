@@ -5,7 +5,6 @@ import (
 	"compress/zlib"
 	"crypto/cipher"
 	"crypto/rsa"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"net"
@@ -295,7 +294,7 @@ func UnmarshalData(input interface{}) []byte {
 			for _, player := range playerData {
 				segment = append(segment, UnmarshalData(&player)...)
 			}
-			fmt.Println(hex.Dump(segment))
+			//fmt.Println(hex.Dump(segment))
 		} else if tag == "playerPropertiesArray" {
 			playerProperties := val.([]entity.PlayerProperty)
 			//fmt.Println("Player Property Array Length ", len(playerProperties))

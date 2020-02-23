@@ -3,7 +3,6 @@ package dataTypes
 import (
 	"bytes"
 	"compress/zlib"
-	"encoding/hex"
 	"fmt"
 )
 
@@ -21,6 +20,7 @@ func ReadChunk(buf []byte) (interface{}, int) {
 	chunk.Length = chunkLength.(int)
 	compressionScheme, length := ReadUnsignedByte(buf[4:])
 	chunk.CompressionScheme = compressionScheme.(byte)
+	cursor += length
 
 	fmt.Println("Chunk Length is ", chunk.Length)
 	fmt.Println("Compression Scheme is ", chunk.CompressionScheme)
@@ -43,14 +43,10 @@ func ReadChunk(buf []byte) (interface{}, int) {
 		return chunk, cursor
 	}
 
-	fmt.Println("Decompress successful")
-	fmt.Println(hex.Dump(decompressedBytes))
-
 	chunk.Raw = decompressedBytes
 	chunkData, length := ReadNBT(decompressedBytes)
 	cursor += length
 
-	fmt.Println(chunkData)
 	chunk.Data = chunkData.([]interface{})
 
 	return chunk, cursor

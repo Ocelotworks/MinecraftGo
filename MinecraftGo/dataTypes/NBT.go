@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/binary"
-	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -32,8 +30,8 @@ func ReadNBT(buf []byte) (interface{}, int) {
 	}
 
 	compound, _ := NBTReadCompound(data)
-	b, _ := json.Marshal(compound)
-	fmt.Println(string(b))
+	//b, _ := json.Marshal(compound)
+	//fmt.Println(string(b))
 
 	return compound, 0
 }
@@ -121,14 +119,16 @@ func NBTReadNamed(function func(buf []byte) (interface{}, int), typeId byte) fun
 		name, cursor := NBTReadString(buf)
 
 		named.Name = name.(string)
-		fmt.Println("Name ", named.Name)
+		fmt.Println("--- TAG START: ", named.Name)
 		if function == nil {
+			fmt.Println("??? Nil function reading Named NBT Tag")
 			return named, cursor
 		}
 		value, length := function(buf[cursor:])
 		cursor += length
 		named.Data = value
 		named.Type = typeId
+		fmt.Println("--- TAG END: ", named.Name)
 
 		return named, cursor
 	}
@@ -268,11 +268,11 @@ func NBTReadLongArray(buf []byte) (interface{}, int) {
 	length, cursor := NBTReadSignedInteger(buf)
 	output := make([]int64, length.(int32))
 	fmt.Println("Long Array length ", length)
-	fmt.Println(hex.Dump(buf))
+	//fmt.Println(hex.Dump(buf))
 	for i := 0; int32(i) < (length.(int32)); i++ {
-		fmt.Println("Reading long num", i, " at cursor pos ", cursor)
+		//fmt.Println("Reading long num", i, " at cursor pos ", cursor)
 		uncast, length := NBTReadSignedLong(buf[cursor:])
-		fmt.Println("Received as ", uncast)
+		//fmt.Println("Received as ", uncast)
 		output[i] = uncast.(int64)
 		cursor += length
 	}
@@ -310,7 +310,6 @@ func NBTRead(buf []byte, cursor int) ([]interface{}, int) {
 		fmt.Println("NBTRead Contents Type ", contentsType)
 		readMode := getNBTReadFunction(contentsType, false)
 		interf, length := readMode(buf[cursor:])
-		fmt.Println(interf.(NBTNamed))
 		cursor += length
 		into = append(into, interf)
 	}
@@ -357,19 +356,20 @@ func NBTReadList(buf []byte) (interface{}, int) {
 	fmt.Println("List type ", list.Type)
 	cursor := 1
 
-	if list.Type == 0 {
-		fmt.Println("List has 0 type")
-		return list, cursor
-	}
-
 	listLength, length := NBTReadSignedInteger(buf[cursor:])
 	fmt.Println("List Length", listLength)
 	cursor += length
 
-	if listLength == 0 {
-		fmt.Println("List has 0 length")
+	if list.Type == 0 {
+		fmt.Println("??? List has 0 type")
 		return list, cursor
 	}
+
+	if listLength == 0 {
+		fmt.Println("??? List has 0 length")
+		return list, cursor
+	}
+
 	list.Values = make([]interface{}, listLength.(int32))
 
 	//fmt.Println(hex.Dump(buf))
@@ -440,9 +440,35 @@ func NBTToString(input interface{}, level int) string {
 		break
 	default:
 		output += fmt.Sprintf("%v\n", input)
-		//fmt.Printf("Unknown type %T\n", input)
+		fmt.Printf("??? Unknown type %T\n", input)
 		break
 	}
 
 	return output
+}
+
+func NBTAsMap(input []interface{}) interface{} {
+	output := map[string]interface{}{}
+
+	for i, elem := range input {
+		switch elem.(type) {
+		case NBTNamed:
+			named := elem.(NBTNamed)
+			name := named.Name
+			if named.Name == "" {
+				name = "Unnamed"
+			}
+			output[name] = NBTAsMap([]interface{}{named.Data})
+			break
+		case []interface{}:
+			output[fmt.Sprintf("Compound_%d", i)] = NBTAsMap(elem.([]interface{}))
+		case NBTList:
+			output[fmt.Sprintf("List-%d", i)] = NBTAsMap((elem.(NBTList)).Values)
+		default:
+			fmt.Printf("unknown type %T\n", elem)
+			return elem
+		}
+	}
+	return output
+
 }
