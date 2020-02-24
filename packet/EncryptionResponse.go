@@ -1,8 +1,9 @@
 package packet
 
 import (
-	"../cfb8"
-	"../entity"
+	"github.com/Ocelotworks/MinecraftGo/cfb8"
+	"github.com/Ocelotworks/MinecraftGo/entity"
+
 	"crypto/aes"
 	"crypto/rand"
 	"crypto/rsa"

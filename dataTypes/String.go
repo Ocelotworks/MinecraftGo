@@ -1,10 +1,11 @@
 package dataTypes
 
 import (
-	"../entity"
 	"bytes"
 	"encoding/json"
 	"fmt"
+
+	"github.com/Ocelotworks/MinecraftGo/entity"
 )
 
 func ReadString(buf []byte) (interface{}, int) {

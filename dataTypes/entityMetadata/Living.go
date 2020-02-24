@@ -1,9 +1,9 @@
 package entityMetadata
 
-import entity ".."
+import "github.com/Ocelotworks/MinecraftGo/dataTypes"
 
 type LivingEntityMetadata struct {
-	entity.EntityMetadata
+	dataTypes.EntityMetadata
 	HandState          *byte
 	Health             *float32
 	PotionAffectColour *int

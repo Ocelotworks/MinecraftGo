@@ -1,8 +1,9 @@
 package packet
 
 import (
-	"../entity"
 	"fmt"
+
+	"github.com/Ocelotworks/MinecraftGo/entity"
 )
 
 type IncomingChatMessage struct {

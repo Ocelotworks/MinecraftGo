@@ -1,11 +1,12 @@
 package main
 
 import (
-	"./packet"
 	"crypto/rand"
 	"crypto/rsa"
 	"fmt"
 	"net"
+
+	"github.com/Ocelotworks/MinecraftGo/packet"
 )
 
 var keyPair *rsa.PrivateKey

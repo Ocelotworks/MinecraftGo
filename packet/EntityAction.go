@@ -1,8 +1,10 @@
 package packet
 
-import "fmt"
+import (
+	"fmt"
 
-import "../dataTypes"
+	"github.com/Ocelotworks/MinecraftGo/dataTypes"
+)
 
 type EntityAction struct {
 	EntityID  int `proto:"varInt"`

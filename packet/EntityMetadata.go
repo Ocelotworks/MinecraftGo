@@ -1,6 +1,6 @@
 package packet
 
-import "../dataTypes"
+import "github.com/Ocelotworks/MinecraftGo/dataTypes"
 
 type EntityMetadata struct {
 	EntityID int                `proto:"varInt"`

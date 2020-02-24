@@ -11,8 +11,8 @@ import (
 	"reflect"
 	"time"
 
-	"../dataTypes"
-	"../entity"
+	"github.com/Ocelotworks/MinecraftGo/dataTypes"
+	"github.com/Ocelotworks/MinecraftGo/entity"
 )
 
 type Connection struct {

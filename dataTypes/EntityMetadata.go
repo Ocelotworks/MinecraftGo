@@ -1,8 +1,9 @@
 package dataTypes
 
 import (
-	"../entity"
 	"encoding/json"
+
+	"github.com/Ocelotworks/MinecraftGo/entity"
 )
 
 type Metadata interface {

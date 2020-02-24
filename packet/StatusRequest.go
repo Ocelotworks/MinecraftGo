@@ -1,9 +1,10 @@
 package packet
 
 import (
-	"../entity"
 	"encoding/json"
 	"fmt"
+
+	"github.com/Ocelotworks/MinecraftGo/entity"
 )
 
 type StatusRequest struct {

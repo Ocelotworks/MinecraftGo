@@ -1,10 +1,10 @@
 package packet
 
 import (
-	"../dataTypes"
-	"../entity"
 	"encoding/json"
 	"fmt"
+	"github.com/Ocelotworks/MinecraftGo/dataTypes"
+	"github.com/Ocelotworks/MinecraftGo/entity"
 	"github.com/gofrs/uuid"
 )
 

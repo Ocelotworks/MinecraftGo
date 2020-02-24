@@ -1,6 +1,6 @@
 package packet
 
-import "../entity"
+import "github.com/Ocelotworks/MinecraftGo/entity"
 
 type PlayerInfoAddPlayer struct {
 	Action  int             `proto:"varInt"`

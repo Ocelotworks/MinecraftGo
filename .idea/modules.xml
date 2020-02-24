@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/MinecraftGo/MinecraftGo.iml" filepath="$PROJECT_DIR$/MinecraftGo/MinecraftGo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/MinecraftGo.iml" filepath="$PROJECT_DIR$/MinecraftGo.iml" />
     </modules>
   </component>
 </project>

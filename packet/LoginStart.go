@@ -1,11 +1,11 @@
 package packet
 
 import (
-	"../entity"
 	"crypto/rand"
 	"crypto/x509"
-
 	"fmt"
+
+	"github.com/Ocelotworks/MinecraftGo/entity"
 	"github.com/gofrs/uuid"
 )
 

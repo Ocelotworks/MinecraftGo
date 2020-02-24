@@ -1,14 +1,15 @@
 package packet
 
 import (
-	"../dataTypes"
-	"../entity"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"math"
 	"math/rand"
+
+	"github.com/Ocelotworks/MinecraftGo/dataTypes"
+	"github.com/Ocelotworks/MinecraftGo/entity"
 )
 
 type ClientSettings struct {
