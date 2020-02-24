@@ -2,7 +2,7 @@ package entity
 
 type ChatMessage struct {
 	Translate string                  `json:"translate"`
-	With      *[]ChatMessageComponent `json:"with"`
+	With      *[]ChatMessageComponent `json:"with,omitempty"`
 }
 
 type ChatMessageComponent struct {

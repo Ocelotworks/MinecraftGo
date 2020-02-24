@@ -101,6 +101,7 @@ var dataWriteMap = map[string]func(interface{}) []byte{
 	"double":         dataTypes.WriteDouble,
 	"uuid":           dataTypes.WriteUUID,
 	"entityMetadata": dataTypes.WriteEntityMetadata,
+	"varIntArray":    dataTypes.WriteVarIntArray,
 }
 
 func Init(conn net.Conn, key *rsa.PrivateKey, minecraft *Minecraft) *Connection {
@@ -134,6 +135,8 @@ func (c *Connection) sendKeepAlive() {
 		exception := c.SendPacket(&keepAlive)
 		if exception != nil {
 			fmt.Println("client has probably gone away")
+
+			go c.Minecraft.PlayerLeave(c)
 			break
 		}
 	}
@@ -205,8 +208,6 @@ func (c *Connection) Handle() {
 			iPacketType, end := dataTypes.ReadVarInt(decryptedBuf[cursor:])
 			packetType := iPacketType.(int)
 			cursor += end
-
-			fmt.Printf("State %d, Packet Type: %d\n", c.State, packetType)
 
 			if packets[c.State] == nil {
 				fmt.Println("!!! Bad State ", c.State)
@@ -361,6 +362,10 @@ func (c *Connection) SendPacket(packet *Packet) error {
 	//	fmt.Println(">>>OUTGOING<<<")
 	//	fmt.Println(hex.Dump(payload))
 	//}
+
+	if packetID == 0x34 {
+		fmt.Println(payload)
+	}
 
 	fmt.Println("Writing payload")
 	var exception error
