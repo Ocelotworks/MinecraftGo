@@ -3,6 +3,7 @@ package packet
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/Ocelotworks/MinecraftGo/dataTypes"
 	"github.com/Ocelotworks/MinecraftGo/entity"
 	"github.com/gofrs/uuid"
@@ -61,7 +62,6 @@ func (mc *Minecraft) UpdatePlayerPosition(connection *Connection, newX float64, 
 
 	deltaX, deltaY, deltaZ, blockDeltaX, blockDeltaY, blockDeltaZ := calculateDeltas(connection.Player, newX, newY, newZ)
 	if deltaX != 0 || deltaY != 0 || deltaZ != 0 {
-		fmt.Println("Deltas ", deltaX, deltaY, deltaZ)
 		player.X = newX
 		player.Y = newY
 		player.Z = newZ
@@ -181,6 +181,49 @@ func (mc *Minecraft) PlayerJoin(connection *Connection) {
 	go mc.SendMessage(1, chatMessage)
 
 	go connection.sendKeepAlive()
+}
+
+func (mc *Minecraft) PlayerLeave(connection *Connection) {
+	mc.ConnectedPlayers--
+	// Send player list update
+	currentPlayersPacket := Packet(&PlayerInfoRemovePlayer{
+		Action:          4,
+		NumberOfPlayers: 1,
+		UUID:            connection.Player.UUID,
+	})
+
+	mc.SendToAllExcept(connection, &currentPlayersPacket)
+
+	// Send chat message
+	yellow := entity.Yellow
+	chatMessageComponents := []entity.ChatMessageComponent{
+		{
+			Text:   connection.Player.Username,
+			Colour: &yellow,
+		},
+	}
+
+	chatMessage := entity.ChatMessage{
+		Translate: "multiplayer.player.left",
+		With:      &chatMessageComponents,
+	}
+
+	go mc.SendMessage(1, chatMessage)
+
+	// Send remove entity if player.entityID != 0
+	if connection.Player.EntityID != 0 {
+		fmt.Println("Destroying player entity id: %d", connection.Player.EntityID)
+		destroyEntityIDs := []int{
+			connection.Player.EntityID,
+		}
+
+		destroyEntityPacket := Packet(&DestroyEntity{
+			Count:     1,
+			EntityIDs: destroyEntityIDs,
+		})
+
+		go mc.SendToAllExcept(connection, &destroyEntityPacket)
+	}
 }
 
 func (mc *Minecraft) SendToAllExcept(connection *Connection, packet *Packet) {

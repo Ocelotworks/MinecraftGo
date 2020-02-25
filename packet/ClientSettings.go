@@ -2,9 +2,7 @@ package packet
 
 import (
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math"
 	"math/rand"
 
@@ -86,6 +84,7 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 
 	fmt.Println(hex.Dump(heightMaps))
 
+	/**
 	inData, exception := ioutil.ReadFile("world/region/r.0.0.mca")
 
 	if exception != nil {
@@ -105,6 +104,7 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 	fmt.Println("As json:")
 	fmt.Println(string(asJson))
 
+	*/
 	//output := nbtMap.(map[string]interface{})["Unnamed"].(map[string]interface{})["Compound_0"]
 	//level := output.(map[string]interface{})["Level"].(map[string]interface{})["Compound_0"].(map[string]interface{})
 
