@@ -16,6 +16,7 @@ type Minecraft struct {
 	MaxPlayers           int
 	EnableEncryption     bool
 	CompressionThreshold int
+	GobalEntityCounter   int
 }
 
 func CreateMinecraft() *Minecraft {
@@ -30,6 +31,7 @@ func CreateMinecraft() *Minecraft {
 		ConnectedPlayers:     0,
 		EnableEncryption:     true,
 		CompressionThreshold: -1,
+		GobalEntityCounter:   1,
 	}
 }
 
@@ -184,34 +186,34 @@ func (mc *Minecraft) PlayerJoin(connection *Connection) {
 }
 
 func (mc *Minecraft) PlayerLeave(connection *Connection) {
-	mc.ConnectedPlayers--
-	// Send player list update
-	currentPlayersPacket := Packet(&PlayerInfoRemovePlayer{
-		Action:          4,
-		NumberOfPlayers: 1,
-		UUID:            connection.Player.UUID,
-	})
-
-	mc.SendToAllExcept(connection, &currentPlayersPacket)
-
-	// Send chat message
-	yellow := entity.Yellow
-	chatMessageComponents := []entity.ChatMessageComponent{
-		{
-			Text:   connection.Player.Username,
-			Colour: &yellow,
-		},
-	}
-
-	chatMessage := entity.ChatMessage{
-		Translate: "multiplayer.player.left",
-		With:      &chatMessageComponents,
-	}
-
-	go mc.SendMessage(1, chatMessage)
-
 	// Send remove entity if player.entityID != 0
-	if connection.Player.EntityID != 0 {
+	if connection.Player != nil && connection.Player.EntityID != 0 {
+		mc.ConnectedPlayers--
+		// Send player list update
+		currentPlayersPacket := Packet(&PlayerInfoRemovePlayer{
+			Action:          4,
+			NumberOfPlayers: 1,
+			UUID:            connection.Player.UUID,
+		})
+
+		mc.SendToAllExcept(connection, &currentPlayersPacket)
+
+		// Send chat message
+		yellow := entity.Yellow
+		chatMessageComponents := []entity.ChatMessageComponent{
+			{
+				Text:   connection.Player.Username,
+				Colour: &yellow,
+			},
+		}
+
+		chatMessage := entity.ChatMessage{
+			Translate: "multiplayer.player.left",
+			With:      &chatMessageComponents,
+		}
+
+		go mc.SendMessage(1, chatMessage)
+
 		fmt.Println("Destroying player entity id: %d", connection.Player.EntityID)
 		destroyEntityIDs := []int{
 			connection.Player.EntityID,

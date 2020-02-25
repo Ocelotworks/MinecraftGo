@@ -44,13 +44,15 @@ func (ls *LoginStart) Handle(packet []byte, connection *Connection) {
 			DisplayName: entity.ChatMessageComponent{
 				Text: ls.Username,
 			},
-			EntityID: connection.Minecraft.ConnectedPlayers,
+			EntityID: connection.Minecraft.GobalEntityCounter,
 			X:        5,
 			Y:        255,
 			Z:        5,
 			Yaw:      0,
 			Pitch:    0,
 		}
+
+		connection.Minecraft.GobalEntityCounter++
 
 		encryptionPacket := Packet(&EncryptionRequest{
 			ServerID:          "",
