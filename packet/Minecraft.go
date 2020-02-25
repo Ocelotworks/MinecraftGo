@@ -39,22 +39,37 @@ func calculateDeltas(player *entity.Player, newX float64, newY float64, newZ flo
 	return int16((newX*32 - player.X*32) * 128), int16((newY*32 - player.Y*32) * 128), int16((newZ*32 - player.Z*32) * 128), newX - player.X, newY - player.Y, newZ - player.Z
 }
 
+func calculateRotation(angle float32) byte {
+	rotation := byte(0)
+
+	if angle != 0 {
+		rotation = byte((angle / 360) * 254)
+	}
+
+	return rotation
+}
+
 func (mc *Minecraft) UpdatePlayerPosition(connection *Connection, newX float64, newY float64, newZ float64, newYaw float32, newPitch float32) {
 	player := connection.Player
+
+	yawRotation := calculateRotation(newYaw)
+	pitchRotation := calculateRotation(newPitch)
+
 	if newX == 0 && newY == 0 && newZ == 0 && newYaw != 00 && newPitch != 0 {
-		player.Yaw = newYaw
-		player.Pitch = newPitch
+		// Convert degrees from n/260 to n/254
+
 		packet := Packet(&EntityRotation{
 			EntityID: player.EntityID,
-			Yaw:      byte(player.Yaw),
-			Pitch:    byte(player.Pitch),
+			Yaw:      yawRotation,
+			Pitch:    pitchRotation,
 			OnGround: true,
 		})
+
 		mc.SendToAllExcept(connection, &packet)
 
 		headLookPacket := Packet(&EntityHeadLook{
 			EntityID: player.EntityID,
-			Yaw:      byte(player.Yaw),
+			Yaw:      yawRotation,
 		})
 
 		mc.SendToAllExcept(connection, &headLookPacket)
@@ -78,8 +93,8 @@ func (mc *Minecraft) UpdatePlayerPosition(connection *Connection, newX float64, 
 				X:        newX,
 				Y:        newY,
 				Z:        newZ,
-				Yaw:      byte(player.Yaw),
-				Pitch:    byte(player.Pitch),
+				Yaw:      yawRotation,
+				Pitch:    pitchRotation,
 				OnGround: true,
 			})
 		} else {
@@ -89,14 +104,14 @@ func (mc *Minecraft) UpdatePlayerPosition(connection *Connection, newX float64, 
 					DeltaX:   deltaX,
 					DeltaY:   deltaY,
 					DeltaZ:   deltaZ,
-					Yaw:      byte(player.Yaw),
-					Pitch:    byte(player.Pitch),
+					Yaw:      yawRotation,
+					Pitch:    pitchRotation,
 					OnGround: true,
 				})
 
 				headLookPacket := Packet(&EntityHeadLook{
 					EntityID: player.EntityID,
-					Yaw:      byte(player.Yaw),
+					Yaw:      yawRotation,
 				})
 
 				mc.SendToAllExcept(connection, &headLookPacket)
