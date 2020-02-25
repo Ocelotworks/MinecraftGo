@@ -22,6 +22,27 @@ func (ls *LoginStart) GetPacketId() int {
 func (ls *LoginStart) Handle(packet []byte, connection *Connection) {
 	fmt.Println("Username ", ls.Username)
 
+	// Initialise the player entity
+	connection.Player = &entity.Player{
+		Username:       ls.Username,
+		Properties:     []entity.PlayerProperty{},
+		Gamemode:       0,
+		Ping:           0,
+		HasDisplayName: true,
+		DisplayName: entity.ChatMessageComponent{
+			Text: ls.Username,
+		},
+		EntityID: connection.Minecraft.GobalEntityCounter,
+		X:        5,
+		Y:        255,
+		Z:        5,
+		Yaw:      0,
+		Pitch:    0,
+	}
+
+	// Increment the global entity counter
+	connection.Minecraft.GobalEntityCounter++
+
 	if connection.Minecraft.EnableEncryption {
 		fmt.Println(connection.Key.PublicKey)
 
@@ -35,25 +56,6 @@ func (ls *LoginStart) Handle(packet []byte, connection *Connection) {
 		connection.VerifyToken = make([]byte, 4)
 		rand.Read(connection.VerifyToken)
 
-		connection.Player = &entity.Player{
-			Username:       ls.Username,
-			Properties:     []entity.PlayerProperty{},
-			Gamemode:       0,
-			Ping:           0,
-			HasDisplayName: true,
-			DisplayName: entity.ChatMessageComponent{
-				Text: ls.Username,
-			},
-			EntityID: connection.Minecraft.GobalEntityCounter,
-			X:        5,
-			Y:        255,
-			Z:        5,
-			Yaw:      0,
-			Pitch:    0,
-		}
-
-		connection.Minecraft.GobalEntityCounter++
-
 		encryptionPacket := Packet(&EncryptionRequest{
 			ServerID:          "",
 			PublicKeyLength:   len(publicKey),
@@ -64,24 +66,7 @@ func (ls *LoginStart) Handle(packet []byte, connection *Connection) {
 
 		connection.SendPacket(&encryptionPacket)
 	} else {
-		connection.Player = &entity.Player{
-			UUID:           uuid.NewV3(uuid.Nil, "OfflinePlayer:"+ls.Username).Bytes(),
-			Username:       ls.Username,
-			Properties:     []entity.PlayerProperty{},
-			Gamemode:       0,
-			Ping:           0,
-			HasDisplayName: true,
-			DisplayName: entity.ChatMessageComponent{
-				Text: ls.Username,
-			},
-			EntityID: connection.Minecraft.ConnectedPlayers,
-			X:        5,
-			Y:        255,
-			Z:        5,
-			Yaw:      0,
-			Pitch:    0,
-		}
-
+		connection.Player.UUID = uuid.NewV3(uuid.Nil, "OfflinePlayer:"+ls.Username).Bytes()
 		connection.Minecraft.StartPlayerJoin(connection)
 	}
 }
