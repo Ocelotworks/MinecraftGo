@@ -16,6 +16,7 @@ type Minecraft struct {
 	MaxPlayers           int
 	EnableEncryption     bool
 	CompressionThreshold int
+	GobalEntityCounter   int
 }
 
 func CreateMinecraft() *Minecraft {
@@ -30,6 +31,7 @@ func CreateMinecraft() *Minecraft {
 		ConnectedPlayers:     0,
 		EnableEncryption:     true,
 		CompressionThreshold: -1,
+		GobalEntityCounter:   1,
 	}
 }
 
@@ -37,22 +39,37 @@ func calculateDeltas(player *entity.Player, newX float64, newY float64, newZ flo
 	return int16((newX*32 - player.X*32) * 128), int16((newY*32 - player.Y*32) * 128), int16((newZ*32 - player.Z*32) * 128), newX - player.X, newY - player.Y, newZ - player.Z
 }
 
+func calculateRotation(angle float32) byte {
+	rotation := byte(0)
+
+	if angle != 0 {
+		rotation = byte((angle / 360) * 254)
+	}
+
+	return rotation
+}
+
 func (mc *Minecraft) UpdatePlayerPosition(connection *Connection, newX float64, newY float64, newZ float64, newYaw float32, newPitch float32) {
 	player := connection.Player
+
+	yawRotation := calculateRotation(newYaw)
+	pitchRotation := calculateRotation(newPitch)
+
 	if newX == 0 && newY == 0 && newZ == 0 && newYaw != 00 && newPitch != 0 {
-		player.Yaw = newYaw
-		player.Pitch = newPitch
+		// Convert degrees from n/260 to n/254
+
 		packet := Packet(&EntityRotation{
 			EntityID: player.EntityID,
-			Yaw:      byte(player.Yaw),
-			Pitch:    byte(player.Pitch),
+			Yaw:      yawRotation,
+			Pitch:    pitchRotation,
 			OnGround: true,
 		})
+
 		mc.SendToAllExcept(connection, &packet)
 
 		headLookPacket := Packet(&EntityHeadLook{
 			EntityID: player.EntityID,
-			Yaw:      byte(player.Yaw),
+			Yaw:      yawRotation,
 		})
 
 		mc.SendToAllExcept(connection, &headLookPacket)
@@ -76,8 +93,8 @@ func (mc *Minecraft) UpdatePlayerPosition(connection *Connection, newX float64, 
 				X:        newX,
 				Y:        newY,
 				Z:        newZ,
-				Yaw:      byte(player.Yaw),
-				Pitch:    byte(player.Pitch),
+				Yaw:      yawRotation,
+				Pitch:    pitchRotation,
 				OnGround: true,
 			})
 		} else {
@@ -87,14 +104,14 @@ func (mc *Minecraft) UpdatePlayerPosition(connection *Connection, newX float64, 
 					DeltaX:   deltaX,
 					DeltaY:   deltaY,
 					DeltaZ:   deltaZ,
-					Yaw:      byte(player.Yaw),
-					Pitch:    byte(player.Pitch),
+					Yaw:      yawRotation,
+					Pitch:    pitchRotation,
 					OnGround: true,
 				})
 
 				headLookPacket := Packet(&EntityHeadLook{
 					EntityID: player.EntityID,
-					Yaw:      byte(player.Yaw),
+					Yaw:      yawRotation,
 				})
 
 				mc.SendToAllExcept(connection, &headLookPacket)
@@ -184,34 +201,34 @@ func (mc *Minecraft) PlayerJoin(connection *Connection) {
 }
 
 func (mc *Minecraft) PlayerLeave(connection *Connection) {
-	mc.ConnectedPlayers--
-	// Send player list update
-	currentPlayersPacket := Packet(&PlayerInfoRemovePlayer{
-		Action:          4,
-		NumberOfPlayers: 1,
-		UUID:            connection.Player.UUID,
-	})
-
-	mc.SendToAllExcept(connection, &currentPlayersPacket)
-
-	// Send chat message
-	yellow := entity.Yellow
-	chatMessageComponents := []entity.ChatMessageComponent{
-		{
-			Text:   connection.Player.Username,
-			Colour: &yellow,
-		},
-	}
-
-	chatMessage := entity.ChatMessage{
-		Translate: "multiplayer.player.left",
-		With:      &chatMessageComponents,
-	}
-
-	go mc.SendMessage(1, chatMessage)
-
 	// Send remove entity if player.entityID != 0
-	if connection.Player.EntityID != 0 {
+	if connection.Player != nil && connection.Player.EntityID != 0 {
+		mc.ConnectedPlayers--
+		// Send player list update
+		currentPlayersPacket := Packet(&PlayerInfoRemovePlayer{
+			Action:          4,
+			NumberOfPlayers: 1,
+			UUID:            connection.Player.UUID,
+		})
+
+		mc.SendToAllExcept(connection, &currentPlayersPacket)
+
+		// Send chat message
+		yellow := entity.Yellow
+		chatMessageComponents := []entity.ChatMessageComponent{
+			{
+				Text:   connection.Player.Username,
+				Colour: &yellow,
+			},
+		}
+
+		chatMessage := entity.ChatMessage{
+			Translate: "multiplayer.player.left",
+			With:      &chatMessageComponents,
+		}
+
+		go mc.SendMessage(1, chatMessage)
+
 		fmt.Println("Destroying player entity id: %d", connection.Player.EntityID)
 		destroyEntityIDs := []int{
 			connection.Player.EntityID,
