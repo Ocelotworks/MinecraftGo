@@ -8,9 +8,3 @@ type UpdateViewPosition struct {
 func (uvp *UpdateViewPosition) GetPacketId() int {
 	return 0x41
 }
-
-/**
-func (uvp *UpdateViewPosition) Handle(packet []byte, connection *Connection) {
-	//Client Only Packet
-}
-*/
