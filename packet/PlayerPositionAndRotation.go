@@ -12,9 +12,3 @@ type PlayerPositionAndRotation struct {
 func (ppar *PlayerPositionAndRotation) GetPacketId() int {
 	return 0x12
 }
-
-/**
-func (ppar *PlayerPositionAndRotation) Handle(packet []byte, connection *Connection) {
-	connection.Minecraft.UpdatePlayerPosition(connection, ppar.X, ppar.FeetY, ppar.Z, ppar.Yaw, ppar.Pitch)
-}
-*/

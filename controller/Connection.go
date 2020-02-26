@@ -50,23 +50,23 @@ var controllers = map[State][]Packet{
 		0x01: &StatusPing{},
 	},
 	LOGIN: {
-		0x00: &packetType.LoginStart{},
-		0x01: &packetType.EncryptionResponse{},
+		0x00: &LoginStart{},
+		0x01: &EncryptionResponse{},
 	},
 	PLAY: {
-		0x00: &packetType.TeleportConfirm{},
-		0x03: &packetType.IncomingChatMessage{},
-		0x05: &packetType.ClientSettings{},
-		0x0B: &packetType.PluginMessage{IsServer: true},
-		0x0F: &packetType.KeepAlive{},
-		0x11: &packetType.PlayerPosition{},
-		0x12: &packetType.PlayerPositionAndRotation{},
-		0x13: &packetType.PlayerRotation{},
-		0x14: &packetType.PlayerMovement{},
-		0x1A: &packetType.PlayerDigging{},
-		0x1B: &packetType.EntityAction{},
-		0x23: &packetType.HeldItemChange{IsServer: true},
-		0x2A: &packetType.Animation{},
+		0x00: &TeleportConfirm{},
+		0x03: &IncomingChatMessage{},
+		0x05: &ClientSettings{},
+		0x0B: &PluginMessage{},
+		0x0F: &KeepAlive{},
+		0x11: &PlayerPosition{},
+		0x12: &PlayerPositionAndRotation{},
+		0x13: &PlayerRotation{},
+		0x14: &PlayerMovement{},
+		0x1A: &PlayerDigging{},
+		0x1B: &EntityAction{},
+		0x23: &HeldItemChange{},
+		0x2A: &Animation{},
 	},
 }
 
@@ -207,20 +207,22 @@ func (c *Connection) Handle() {
 			//fmt.Printf("Read length: %d, Reported Length: %d\n", readLength, length)
 
 			iPacketType, end := dataTypes.ReadVarInt(decryptedBuf[cursor:])
-			packetType := iPacketType.(int)
+			currentPacketType := iPacketType.(int)
 			cursor += end
 
-			if packets[c.State] == nil {
+			if controllers[c.State] == nil {
 				fmt.Println("!!! Bad State ", c.State)
 				continue
 			}
 
-			if packetType < 0 || len(packets[c.State]) < packetType || packets[c.State][packetType] == nil {
-				fmt.Printf("!!! Bad Packet Type 0x%X\n", packetType)
+			if currentPacketType < 0 || len(controllers[c.State]) < currentPacketType || controllers[c.State][currentPacketType] == nil {
+				fmt.Printf("!!! Bad Packet Type 0x%X\n", currentPacketType)
 				continue
 			}
 
-			packet := packets[c.State][packetType]
+			packetController := controllers[c.State][currentPacketType]
+
+			packet := packetController.GetPacketStruct()
 
 			//if cursor+length > len(decryptedBuf) {
 			//	fmt.Println("Buffer overflow", cursor+length, len(decryptedBuf))
@@ -233,7 +235,9 @@ func (c *Connection) Handle() {
 			//fmt.Println(hex.Dump(packetBuffer))
 
 			c.StructScan(&packet, packetBuffer)
-			//packet.Handle(packetBuffer, c)
+
+			packetController.Init(packet)
+			packetController.Handle(decryptedBuf, c)
 		}
 	}
 }

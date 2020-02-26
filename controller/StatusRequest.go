@@ -6,6 +6,7 @@ import (
 
 	"github.com/Ocelotworks/MinecraftGo/entity"
 	packetType "github.com/Ocelotworks/MinecraftGo/packet"
+	"github.com/gofrs/uuid"
 )
 
 type StatusRequest struct {
@@ -23,6 +24,25 @@ func (sr *StatusRequest) Init(currentPacket packetType.Packet) {
 func (sr *StatusRequest) Handle(packet []byte, connection *Connection) {
 	//sends the client response
 	fmt.Println("Status Request")
+
+	players := make([]entity.ServerListPingPlayerListItem, 0)
+
+	for _, c := range connection.Minecraft.Connections {
+		if c.Player != nil && c.Player.EntityID > 0 {
+			playerUUID, exception := uuid.FromBytes(c.Player.UUID)
+
+			if exception != nil {
+				fmt.Println(exception)
+				continue
+			}
+
+			players = append(players, entity.ServerListPingPlayerListItem{
+				Name: c.Player.Username,
+				ID:   playerUUID.String(),
+			})
+		}
+	}
+
 	status := entity.ServerListPingResponse{
 		Version: entity.ServerListPingVersion{
 			Name:     "1.15.2",
@@ -31,10 +51,7 @@ func (sr *StatusRequest) Handle(packet []byte, connection *Connection) {
 		Players: entity.ServerListPingPlayers{
 			Max:    connection.Minecraft.MaxPlayers,
 			Online: connection.Minecraft.ConnectedPlayers,
-			Sample: []entity.ServerListPingPlayerListItem{{
-				Name: "UnacceptableUse",
-				ID:   "5d8af060-129e-419c-b3ac-c0dad1c91181",
-			}},
+			Sample: players,
 		},
 		Description: connection.Minecraft.ServerName,
 	}

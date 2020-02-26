@@ -230,7 +230,7 @@ func (mc *Minecraft) PlayerLeave(connection *Connection) {
 
 		go mc.SendMessage(1, chatMessage)
 
-		fmt.Println("Destroying player entity id: %d", connection.Player.EntityID)
+		fmt.Printf("Destroying player entity id: %d\n", connection.Player.EntityID)
 		destroyEntityIDs := []int{
 			connection.Player.EntityID,
 		}
