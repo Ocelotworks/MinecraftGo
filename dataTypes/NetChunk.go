@@ -1,10 +1,10 @@
 package dataTypes
 
 type NetChunkSection struct {
-	BlockCount   uint16  //short
-	BitsPerBlock byte    //unsigned byte
-	Palette      []int   //Palette
-	DataArray    []int64 //Array of long
+	BlockCount   uint16 //short
+	BitsPerBlock byte   //unsigned byte
+	Palette      []int  //Palette
+	DataArray    []byte //Array of long
 }
 
 func WriteChunk(c interface{}) []byte {
@@ -25,8 +25,8 @@ func WriteChunkSection(c interface{}) []byte {
 	if len(chunk.Palette) > 0 {
 		output = append(output, WriteChunkPalette(chunk.Palette)...) //Palette
 	}
-	output = append(output, WriteVarInt(len(chunk.DataArray))...)
-	output = append(output, WriteLongArray(chunk.DataArray)...)
+	output = append(output, WriteVarInt(len(chunk.DataArray)/8)...)
+	output = append(output, chunk.DataArray...)
 
 	return output
 }

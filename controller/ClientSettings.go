@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math"
-	"math/rand"
 
 	"github.com/Ocelotworks/MinecraftGo/dataTypes"
 	"github.com/Ocelotworks/MinecraftGo/entity"
@@ -55,7 +54,7 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 
 	randomHeightMap := make([]int64, 36)
 	for i := 0; i < 36; i++ {
-		randomHeightMap[i] = int64(i)
+		randomHeightMap[i] = math.MaxInt64
 	}
 
 	heightMaps := dataTypes.NBTWrite(dataTypes.NBTNamed{
@@ -104,19 +103,25 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 
 	//biomes := level["Biomes"].([]uint8)
 
-	for x := 0; x < 7; x++ {
-		for y := 0; y < 7; y++ {
-			chunkSections := make([]dataTypes.NetChunkSection, 32)
-			for i := 0; i < 32; i++ {
-				randomBlocks := make([]int64, 4096)
+	for x := -7; x < 7; x++ {
+		for y := -7; y < 7; y++ {
+			chunkSections := make([]dataTypes.NetChunkSection, 64)
+			for i := 0; i < 64; i++ {
+				randomBlocks := make([]byte, 4096)
 				for z := 0; z < 4096; z++ {
-					randomBlocks[z] = rand.Int63n(int64(math.MaxInt64 - (z * 1000)))
+					randomBlocks[z] = byte((x+y)%255) + 5
+				}
+
+				dummyPalette := make([]int, 1024)
+
+				for p := 0; p < 255; p++ {
+					dummyPalette[p] = p
 				}
 
 				chunkSections[i] = dataTypes.NetChunkSection{
-					BlockCount:   1,
-					BitsPerBlock: 4,
-					Palette:      []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
+					BlockCount:   4096,
+					BitsPerBlock: 8,
+					Palette:      dummyPalette,
 					DataArray:    randomBlocks,
 				}
 			}
