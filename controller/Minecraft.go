@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 
 	"github.com/Ocelotworks/MinecraftGo/dataTypes"
 	"github.com/Ocelotworks/MinecraftGo/entity"
@@ -78,6 +79,8 @@ func (mc *Minecraft) UpdatePlayerPosition(connection *Connection, newX float64, 
 		return
 	}
 
+	mc.CalculateChunkBoundaryCrossing(connection, newX, newZ)
+
 	deltaX, deltaY, deltaZ, blockDeltaX, blockDeltaY, blockDeltaZ := calculateDeltas(connection.Player, newX, newY, newZ)
 	if deltaX != 0 || deltaY != 0 || deltaZ != 0 {
 		player.X = newX
@@ -129,6 +132,32 @@ func (mc *Minecraft) UpdatePlayerPosition(connection *Connection, newX float64, 
 		}
 		mc.SendToAllExcept(connection, &packet)
 	}
+}
+
+/**
+* Calculate crossing chunk boundary on player movement
+ */
+func (mc *Minecraft) CalculateChunkBoundaryCrossing(connection *Connection, newX float64, newZ float64) {
+
+	currentXChunk := mc.BlockCoordToChunkCoord(connection.Player.X)
+	currentZChunk := mc.BlockCoordToChunkCoord(connection.Player.Z)
+
+	newXChunk := mc.BlockCoordToChunkCoord(newX)
+	newZChunk := mc.BlockCoordToChunkCoord(newZ)
+
+	// If we have crossed a chunk boundary send a chunk boundary update
+	if currentXChunk != newXChunk || currentZChunk != newZChunk {
+		updateViewPositionPacket := packetType.Packet(&packetType.UpdateViewPosition{
+			ChunkX: newXChunk,
+			ChunkZ: newZChunk,
+		})
+
+		connection.SendPacket(&updateViewPositionPacket)
+	}
+}
+
+func (mc *Minecraft) BlockCoordToChunkCoord(coord float64) int {
+	return int(math.Floor(coord / 16))
 }
 
 func (mc *Minecraft) PlayerJoin(connection *Connection) {
