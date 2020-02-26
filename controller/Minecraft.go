@@ -318,7 +318,7 @@ func (mc *Minecraft) StartPlayerJoin(connection *Connection) {
 
 	joinGame := packetType.Packet(&packetType.JoinGame{
 		EntityID:            connection.Player.EntityID,
-		Gamemode:            0,
+		Gamemode:            1,
 		Dimension:           0,
 		HashedSeed:          71495747907944700,
 		MaxPlayers:          byte(connection.Minecraft.MaxPlayers),

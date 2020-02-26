@@ -70,91 +70,103 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 	}
 
 	region := dataTypes.ReadRegionFile(inData)
-	chunk := region.Chunks[0]
-	nbtMap := dataTypes.NBTAsMap(chunk.Data)
-	//asJson, exception := json.Marshal(nbtMap)
-	//fmt.Println("As json:")
-	//fmt.Println(string(asJson))
 
-	output := nbtMap.(map[string]interface{})["Unnamed"].(map[string]interface{})["Compound_0"]
-	level := output.(map[string]interface{})["Level"].(map[string]interface{})["Compound_0"].(map[string]interface{})
 	//fmt.Println(level)
 
 	//palette := level["Sections"].(map[string]interface{})["List-0"].(map[string]interface{})["Compound_1"].(map[string]interface{})["Palette"].(map[string]interface{})
 
 	//byte((len(castBlockStates)*64)/4096),
 
-	for x := -7; x < 7; x++ {
-		for y := -7; y < 7; y++ {
-			chunkSections := make([]dataTypes.NetChunkSection, 16)
-			for i := 0; i < 16; i++ {
-				//randomBlocks := make([]byte, 4096)
-				//for z := 0; z < 4096; z++ {
-				//	randomBlocks[z] = byte((x+y)%255) + 5
-				//}
+	for x := 0; x < 7; x++ {
+		chunkSections := make([]dataTypes.NetChunkSection, 16)
+		for i := 0; i < 16; i++ {
+			//randomBlocks := make([]byte, 4096)
+			//for z := 0; z < 4096; z++ {
+			//	randomBlocks[z] = byte((x+y)%255) + 5
+			//}
 
-				compound := level["Sections"].(map[string]interface{})["List-0"].(map[string]interface{})[fmt.Sprintf("Compound_%d", i)]
+			chunk := region.Chunks[x]
+			nbtMap := dataTypes.NBTAsMap(chunk.Data)
+			//asJson, exception := json.Marshal(nbtMap)
+			//fmt.Println("As json:")
+			//fmt.Println(string(asJson))
 
-				if compound == nil {
-					compound = level["Sections"].(map[string]interface{})["List-0"].(map[string]interface{})["Compound_4"]
-				}
-
-				blockStates := compound.(map[string]interface{})["BlockStates"]
-
-				if blockStates == nil {
-					blockStates = level["Sections"].(map[string]interface{})["List-0"].(map[string]interface{})["Compound_4"].(map[string]interface{})["BlockStates"]
-				}
-
-				paletteSize := 16
-				paletteList := compound.(map[string]interface{})["Palette"]
-
-				if paletteList != nil {
-					fmt.Println(paletteList.(map[string]interface{})["List-0"])
-					paletteSize = len(paletteList.(map[string]interface{})["List-0"].(map[string]interface{}))
-				}
-
-				dummyPalette := make([]int, paletteSize)
-
-				for p := 0; p < paletteSize; p++ {
-					dummyPalette[p] = p + 1
-				}
-
-				safeBlockStates := blockStates.([]int64)
-
-				palette := dummyPalette
-
-				bitsPerBlock := byte((len(safeBlockStates) * 64) / 4096)
-
-				if bitsPerBlock > 8 {
-					fmt.Println("BPB is too small to have a palette")
-					palette = []int{}
-				}
-
-				chunkSections[i] = dataTypes.NetChunkSection{
-					BlockCount:   4096,
-					BitsPerBlock: bitsPerBlock,
-					Palette:      palette,
-					DataArray:    safeBlockStates,
-				}
+			if nbtMap == nil {
+				continue
 			}
 
-			chunkRaw := dataTypes.WriteChunk(chunkSections)
+			if nbtMap.(map[string]interface{})["Unnamed"] == nil {
+				continue
+			}
 
-			chunkData := packetType.Packet(&packetType.ChunkData{
-				X:                x,
-				Z:                y,
-				FullChunk:        true,
-				PrimaryBitMask:   0b1111111111111111111111111111111,
-				HeightMap:        heightMaps,
-				Biomes:           randomBiomes,
-				DataSize:         len(chunkRaw),
-				Data:             chunkRaw,
-				BlockEntityCount: 0,
-				BlockEntities:    make([]byte, 0),
-			})
+			output := nbtMap.(map[string]interface{})["Unnamed"].(map[string]interface{})["Compound_0"]
 
-			connection.SendPacket(&chunkData)
+			if output == nil {
+				continue
+			}
+
+			level := output.(map[string]interface{})["Level"].(map[string]interface{})["Compound_0"].(map[string]interface{})
+			compound := level["Sections"].(map[string]interface{})["List-0"].(map[string]interface{})[fmt.Sprintf("Compound_%d", i)]
+
+			if compound == nil {
+				compound = level["Sections"].(map[string]interface{})["List-0"].(map[string]interface{})["Compound_4"]
+			}
+
+			blockStates := compound.(map[string]interface{})["BlockStates"]
+
+			if blockStates == nil {
+				blockStates = level["Sections"].(map[string]interface{})["List-0"].(map[string]interface{})["Compound_4"].(map[string]interface{})["BlockStates"]
+			}
+
+			paletteSize := 16
+			paletteList := compound.(map[string]interface{})["Palette"]
+
+			if paletteList != nil {
+				fmt.Println(paletteList.(map[string]interface{})["List-0"])
+				paletteSize = len(paletteList.(map[string]interface{})["List-0"].(map[string]interface{}))
+			}
+
+			dummyPalette := make([]int, paletteSize)
+
+			for p := 0; p < paletteSize; p++ {
+				dummyPalette[p] = p + 1
+			}
+
+			safeBlockStates := blockStates.([]int64)
+
+			palette := dummyPalette
+
+			bitsPerBlock := byte((len(safeBlockStates) * 64) / 4096)
+
+			if bitsPerBlock > 8 {
+				fmt.Println("BPB is too small to have a palette")
+				palette = []int{}
+			}
+
+			chunkSections[i] = dataTypes.NetChunkSection{
+				BlockCount:   4096,
+				BitsPerBlock: bitsPerBlock,
+				Palette:      palette,
+				DataArray:    safeBlockStates,
+			}
 		}
+
+		chunkRaw := dataTypes.WriteChunk(chunkSections)
+
+		chunkData := packetType.Packet(&packetType.ChunkData{
+			X:                x,
+			Z:                x,
+			FullChunk:        true,
+			PrimaryBitMask:   0b1111111111111111111111111111111,
+			HeightMap:        heightMaps,
+			Biomes:           randomBiomes,
+			DataSize:         len(chunkRaw),
+			Data:             chunkRaw,
+			BlockEntityCount: 0,
+			BlockEntities:    make([]byte, 0),
+		})
+
+		connection.SendPacket(&chunkData)
 	}
 
 	playerSpawn := packetType.Packet(&packetType.SpawnPosition{
