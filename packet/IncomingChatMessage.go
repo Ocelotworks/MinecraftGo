@@ -1,11 +1,5 @@
 package packet
 
-import (
-	"fmt"
-
-	"github.com/Ocelotworks/MinecraftGo/entity"
-)
-
 type IncomingChatMessage struct {
 	Message string `proto:"string"`
 }
@@ -14,6 +8,7 @@ func (icm *IncomingChatMessage) GetPacketId() int {
 	return 0x03
 }
 
+/**
 func (icm *IncomingChatMessage) Handle(packet []byte, connection *Connection) {
 	fmt.Println("got chat message")
 
@@ -33,3 +28,4 @@ func (icm *IncomingChatMessage) Handle(packet []byte, connection *Connection) {
 	connection.Minecraft.SendMessage(0, chatMessage)
 
 }
+*/

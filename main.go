@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/Ocelotworks/MinecraftGo/packet"
+	"github.com/Ocelotworks/MinecraftGo/controller"
 )
 
 var keyPair *rsa.PrivateKey
 
-var minecraft *packet.Minecraft
+var minecraft *controller.Minecraft
 
 func main() {
 
@@ -49,7 +49,7 @@ func main() {
 
 	keyPair = key
 
-	minecraft = packet.CreateMinecraft()
+	minecraft = controller.CreateMinecraft()
 
 	fmt.Println("Listening on port 25565")
 
@@ -65,5 +65,5 @@ func main() {
 }
 
 func handleConnection(connection net.Conn) {
-	minecraft.Connections = append(minecraft.Connections, packet.Init(connection, keyPair, minecraft))
+	minecraft.Connections = append(minecraft.Connections, controller.Init(connection, keyPair, minecraft))
 }

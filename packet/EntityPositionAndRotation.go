@@ -14,6 +14,8 @@ func (epar *EntityPositionAndRotation) GetPacketId() int {
 	return 0x2A
 }
 
+/**
 func (epar *EntityPositionAndRotation) Handle(packet []byte, connection *Connection) {
 	//Client Only
 }
+*/

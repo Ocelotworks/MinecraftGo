@@ -11,6 +11,8 @@ func (apd *AcknowledgePlayerDigging) GetPacketId() int {
 	return 0x08
 }
 
+/**
 func (apd *AcknowledgePlayerDigging) Handle(packet []byte, connection *Connection) {
 	//Client Only Packet
 }
+*/

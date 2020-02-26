@@ -9,6 +9,8 @@ func (de *DestroyEntity) GetPacketId() int {
 	return 0x38
 }
 
+/**
 func (de *DestroyEntity) Handle(packet []byte, connection *Connection) {
 	//Client Only Packet
 }
+*/

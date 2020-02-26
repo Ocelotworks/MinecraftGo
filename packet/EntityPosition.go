@@ -12,6 +12,8 @@ func (ep *EntityPosition) GetPacketId() int {
 	return 0x29
 }
 
+/**
 func (ep *EntityPosition) Handle(packet []byte, connection *Connection) {
 	//Client Only
 }
+*/

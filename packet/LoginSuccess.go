@@ -9,6 +9,8 @@ func (ls *LoginSuccess) GetPacketId() int {
 	return 0x02
 }
 
+/**
 func (ls *LoginSuccess) Handle(packet []byte, connection *Connection) {
 	//Client Only Packet
 }
+*/

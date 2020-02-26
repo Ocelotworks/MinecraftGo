@@ -1,21 +1,5 @@
 package packet
 
-import (
-	"github.com/Ocelotworks/MinecraftGo/cfb8"
-	"github.com/Ocelotworks/MinecraftGo/entity"
-
-	"crypto/aes"
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/sha1"
-	"crypto/x509"
-	"encoding/hex"
-	"encoding/json"
-	"fmt"
-	"net/http"
-	"strings"
-)
-
 type EncryptionResponse struct {
 	SharedSecret []byte `proto:"varIntByteArray"`
 	VerifyToken  []byte `proto:"varIntByteArray"`
@@ -25,6 +9,7 @@ func (er *EncryptionResponse) GetPacketId() int {
 	return 0x01
 }
 
+/**
 func (er *EncryptionResponse) Handle(packet []byte, connection *Connection) {
 	fmt.Println("Shared Secret ", er.SharedSecret)
 	fmt.Println("Verify Token", er.VerifyToken)
@@ -151,3 +136,4 @@ type SessionResponse struct {
 	Name       string                  `json:"name"`
 	Properties []entity.PlayerProperty `json:"properties"`
 }
+*/

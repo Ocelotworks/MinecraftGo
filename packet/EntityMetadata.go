@@ -11,6 +11,8 @@ func (em *EntityMetadata) GetPacketId() int {
 	return 0x44
 }
 
+/**
 func (em *EntityMetadata) Handle(packet []byte, connection *Connection) {
 	//Client Only
 }
+*/

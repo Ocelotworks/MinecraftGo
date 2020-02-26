@@ -1,17 +1,23 @@
-package packet
+package controller
+
+import (
+	"fmt"
+
+	packetType "github.com/Ocelotworks/MinecraftGo/packet"
+)
 
 type Handshaking struct {
-	ProtocolVersion int    `proto:"varInt"`
-	ServerAddress   string `proto:"string"`
-	ServerPort      uint16 `proto:"unsignedShort"`
-	NextState       int    `proto:"varInt"`
+	CurrentPacket *packetType.Handshaking
 }
 
-func (h *Handshaking) GetPacketId() int {
-	return 0x00
+func (h *Handshaking) GetPacketStruct() packetType.Packet {
+	return &packetType.Handshaking{}
 }
 
-/**
+func (h *Handshaking) Init(currentPacket packetType.Packet) {
+	h.CurrentPacket = currentPacket.(*packetType.Handshaking)
+}
+
 func (h *Handshaking) Handle(packet []byte, connection *Connection) {
 	//fmt.Println(hex.Dump(packet))
 	//fmt.Println("We are now handling a handshake packet")
@@ -38,9 +44,8 @@ func (h *Handshaking) Handle(packet []byte, connection *Connection) {
 	//h.NextState = nextState
 	//
 	//fmt.Println(hex.Dump(packet))
-	fmt.Printf("Connection to %s:%d Protocol Version %d\n", h.ServerAddress, h.ServerPort, h.ProtocolVersion)
-	fmt.Println("Next State", h.NextState)
-	connection.State = State(h.NextState)
+	fmt.Printf("Connection to %s:%d Protocol Version %d\n", h.CurrentPacket.ServerAddress, h.CurrentPacket.ServerPort, h.CurrentPacket.ProtocolVersion)
+	fmt.Println("Next State", h.CurrentPacket.NextState)
+	connection.State = State(h.CurrentPacket.NextState)
 
 }
-*/

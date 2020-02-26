@@ -1,7 +1,5 @@
 package packet
 
-import "fmt"
-
 type PluginMessage struct {
 	IsServer   bool
 	Identifier string `proto:"string"`
@@ -15,6 +13,8 @@ func (pm *PluginMessage) GetPacketId() int {
 	return 0x19
 }
 
+/**
 func (pm *PluginMessage) Handle(packet []byte, connection *Connection) {
 	fmt.Println("We need to handle this ", pm.Identifier)
 }
+*/

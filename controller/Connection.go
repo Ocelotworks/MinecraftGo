@@ -1,4 +1,4 @@
-package packet
+package controller
 
 import (
 	"bytes"
@@ -13,6 +13,7 @@ import (
 
 	"github.com/Ocelotworks/MinecraftGo/dataTypes"
 	"github.com/Ocelotworks/MinecraftGo/entity"
+	packetType "github.com/Ocelotworks/MinecraftGo/packet"
 )
 
 type Connection struct {
@@ -40,7 +41,7 @@ const (
 	PLAY        State = 3
 )
 
-var packets = map[State][]Packet{
+var controllers = map[State][]Packet{
 	HANDSHAKING: {
 		0x00: &Handshaking{},
 	},
@@ -49,23 +50,23 @@ var packets = map[State][]Packet{
 		0x01: &StatusPing{},
 	},
 	LOGIN: {
-		0x00: &LoginStart{},
-		0x01: &EncryptionResponse{},
+		0x00: &packetType.LoginStart{},
+		0x01: &packetType.EncryptionResponse{},
 	},
 	PLAY: {
-		0x00: &TeleportConfirm{},
-		0x03: &IncomingChatMessage{},
-		0x05: &ClientSettings{},
-		0x0B: &PluginMessage{IsServer: true},
-		0x0F: &KeepAlive{},
-		0x11: &PlayerPosition{},
-		0x12: &PlayerPositionAndRotation{},
-		0x13: &PlayerRotation{},
-		0x14: &PlayerMovement{},
-		0x1A: &PlayerDigging{},
-		0x1B: &EntityAction{},
-		0x23: &HeldItemChange{IsServer: true},
-		0x2A: &Animation{},
+		0x00: &packetType.TeleportConfirm{},
+		0x03: &packetType.IncomingChatMessage{},
+		0x05: &packetType.ClientSettings{},
+		0x0B: &packetType.PluginMessage{IsServer: true},
+		0x0F: &packetType.KeepAlive{},
+		0x11: &packetType.PlayerPosition{},
+		0x12: &packetType.PlayerPositionAndRotation{},
+		0x13: &packetType.PlayerRotation{},
+		0x14: &packetType.PlayerMovement{},
+		0x1A: &packetType.PlayerDigging{},
+		0x1B: &packetType.EntityAction{},
+		0x23: &packetType.HeldItemChange{IsServer: true},
+		0x2A: &packetType.Animation{},
 	},
 }
 
@@ -126,7 +127,7 @@ func (c *Connection) sendKeepAlive() {
 		//fmt.Println("Waiting")
 		<-time.After(15 * time.Second)
 		fmt.Println("Sending keepalive")
-		keepAlive := Packet(&KeepAlive{
+		keepAlive := packetType.Packet(&packetType.KeepAlive{
 			ID: c.KeepAliveID,
 		})
 
@@ -232,12 +233,12 @@ func (c *Connection) Handle() {
 			//fmt.Println(hex.Dump(packetBuffer))
 
 			c.StructScan(&packet, packetBuffer)
-			packet.Handle(packetBuffer, c)
+			//packet.Handle(packetBuffer, c)
 		}
 	}
 }
 
-func (c *Connection) StructScan(packet *Packet, buf []byte) {
+func (c *Connection) StructScan(packet *packetType.Packet, buf []byte) {
 	v := reflect.ValueOf(*packet).Elem()
 	t := reflect.TypeOf(*packet).Elem()
 
@@ -328,7 +329,7 @@ func UnmarshalData(input interface{}) []byte {
 	return payload
 }
 
-func (c *Connection) SendPacket(packet *Packet) error {
+func (c *Connection) SendPacket(packet *packetType.Packet) error {
 	var payload []byte
 	packetID := byte((*packet).GetPacketId())
 	fmt.Printf("Sending packet 0x%X\n", packetID)
