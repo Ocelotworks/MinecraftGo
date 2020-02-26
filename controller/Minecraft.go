@@ -157,7 +157,8 @@ func (mc *Minecraft) CalculateChunkBoundaryCrossing(connection *Connection, newX
 }
 
 func (mc *Minecraft) BlockCoordToChunkCoord(coord float64) int {
-	return int(math.Floor(coord / 16))
+	intcoord := int(math.Floor(coord))
+	return intcoord >> 4
 }
 
 func (mc *Minecraft) PlayerJoin(connection *Connection) {
