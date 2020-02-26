@@ -1,13 +1,25 @@
-package packet
+package controller
+
+import (
+	"encoding/json"
+	"fmt"
+
+	"github.com/Ocelotworks/MinecraftGo/entity"
+	packetType "github.com/Ocelotworks/MinecraftGo/packet"
+)
 
 type StatusRequest struct {
+	CurrentPacket *packetType.StatusRequest
 }
 
-func (sr *StatusRequest) GetPacketId() int {
-	return 0x01
+func (sr *StatusRequest) GetPacketStruct() packetType.Packet {
+	return &packetType.StatusRequest{}
 }
 
-/**
+func (sr *StatusRequest) Init(currentPacket packetType.Packet) {
+	sr.CurrentPacket = currentPacket.(*packetType.StatusRequest)
+}
+
 func (sr *StatusRequest) Handle(packet []byte, connection *Connection) {
 	//sends the client response
 	fmt.Println("Status Request")
@@ -34,8 +46,6 @@ func (sr *StatusRequest) Handle(packet []byte, connection *Connection) {
 		return
 	}
 
-	response := Packet(&StatusResponse{Status: string(output)})
+	response := packetType.Packet(&packetType.StatusResponse{Status: string(output)})
 	connection.SendPacket(&response)
-
 }
-*/

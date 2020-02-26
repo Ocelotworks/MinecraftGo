@@ -14,6 +14,8 @@ func (sp *SpawnPlayer) GetPacketId() int {
 	return 0x05
 }
 
+/**
 func (sp *SpawnPlayer) Handle(packet []byte, connection *Connection) {
 	//Client Only Packet
 }
+*/

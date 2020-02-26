@@ -1,4 +1,4 @@
-package packet
+package controller
 
 import (
 	"encoding/json"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/Ocelotworks/MinecraftGo/dataTypes"
 	"github.com/Ocelotworks/MinecraftGo/entity"
+	packetType "github.com/Ocelotworks/MinecraftGo/packet"
 	"github.com/gofrs/uuid"
 )
 
@@ -58,7 +59,7 @@ func (mc *Minecraft) UpdatePlayerPosition(connection *Connection, newX float64, 
 	if newX == 0 && newY == 0 && newZ == 0 && newYaw != 00 && newPitch != 0 {
 		// Convert degrees from n/260 to n/254
 
-		packet := Packet(&EntityRotation{
+		packet := packetType.Packet(&packetType.EntityRotation{
 			EntityID: player.EntityID,
 			Yaw:      yawRotation,
 			Pitch:    pitchRotation,
@@ -67,7 +68,7 @@ func (mc *Minecraft) UpdatePlayerPosition(connection *Connection, newX float64, 
 
 		mc.SendToAllExcept(connection, &packet)
 
-		headLookPacket := Packet(&EntityHeadLook{
+		headLookPacket := packetType.Packet(&packetType.EntityHeadLook{
 			EntityID: player.EntityID,
 			Yaw:      yawRotation,
 		})
@@ -86,9 +87,9 @@ func (mc *Minecraft) UpdatePlayerPosition(connection *Connection, newX float64, 
 			player.Yaw = newYaw
 			player.Pitch = newPitch
 		}
-		var packet Packet
+		var packet packetType.Packet
 		if blockDeltaX > 8 || blockDeltaY > 8 || blockDeltaZ > 8 || blockDeltaX < -8 || blockDeltaY < -8 || blockDeltaZ < -8 {
-			packet = Packet(&EntityTeleport{
+			packet = packetType.Packet(&packetType.EntityTeleport{
 				EntityID: player.EntityID,
 				X:        newX,
 				Y:        newY,
@@ -99,7 +100,7 @@ func (mc *Minecraft) UpdatePlayerPosition(connection *Connection, newX float64, 
 			})
 		} else {
 			if player.Yaw != 0 {
-				packet = Packet(&EntityPositionAndRotation{
+				packet = packetType.Packet(&packetType.EntityPositionAndRotation{
 					EntityID: player.EntityID,
 					DeltaX:   deltaX,
 					DeltaY:   deltaY,
@@ -109,7 +110,7 @@ func (mc *Minecraft) UpdatePlayerPosition(connection *Connection, newX float64, 
 					OnGround: true,
 				})
 
-				headLookPacket := Packet(&EntityHeadLook{
+				headLookPacket := packetType.Packet(&packetType.EntityHeadLook{
 					EntityID: player.EntityID,
 					Yaw:      yawRotation,
 				})
@@ -117,7 +118,7 @@ func (mc *Minecraft) UpdatePlayerPosition(connection *Connection, newX float64, 
 				mc.SendToAllExcept(connection, &headLookPacket)
 
 			} else {
-				packet = Packet(&EntityPosition{
+				packet = packetType.Packet(&packetType.EntityPosition{
 					EntityID: player.EntityID,
 					DeltaX:   deltaX,
 					DeltaY:   deltaY,
@@ -133,7 +134,7 @@ func (mc *Minecraft) UpdatePlayerPosition(connection *Connection, newX float64, 
 func (mc *Minecraft) PlayerJoin(connection *Connection) {
 	mc.ConnectedPlayers++
 
-	currentPlayersPacket := Packet(&PlayerInfoAddPlayer{
+	currentPlayersPacket := packetType.Packet(&packetType.PlayerInfoAddPlayer{
 		Action:  0,
 		Players: []entity.Player{*connection.Player},
 	})
@@ -148,7 +149,7 @@ func (mc *Minecraft) PlayerJoin(connection *Connection) {
 		currentPlayers = append(currentPlayers, *con.Player)
 	}
 
-	currentPlayersPacket = Packet(&PlayerInfoAddPlayer{
+	currentPlayersPacket = packetType.Packet(&packetType.PlayerInfoAddPlayer{
 		Action:  0,
 		Players: currentPlayers,
 	})
@@ -159,7 +160,7 @@ func (mc *Minecraft) PlayerJoin(connection *Connection) {
 		if con.Player == nil || con == connection {
 			continue
 		}
-		packet := Packet(&SpawnPlayer{
+		packet := packetType.Packet(&packetType.SpawnPlayer{
 			EntityID: con.Player.EntityID,
 			UUID:     con.Player.UUID,
 			X:        con.Player.X,
@@ -171,7 +172,7 @@ func (mc *Minecraft) PlayerJoin(connection *Connection) {
 		connection.SendPacket(&packet)
 	}
 
-	packet := Packet(&SpawnPlayer{
+	packet := packetType.Packet(&packetType.SpawnPlayer{
 		EntityID: connection.Player.EntityID,
 		UUID:     connection.Player.UUID,
 		X:        connection.Player.X,
@@ -205,7 +206,7 @@ func (mc *Minecraft) PlayerLeave(connection *Connection) {
 	if connection.Player != nil && connection.Player.EntityID != 0 {
 		mc.ConnectedPlayers--
 		// Send player list update
-		currentPlayersPacket := Packet(&PlayerInfoRemovePlayer{
+		currentPlayersPacket := packetType.Packet(&packetType.PlayerInfoRemovePlayer{
 			Action:          4,
 			NumberOfPlayers: 1,
 			UUID:            connection.Player.UUID,
@@ -234,7 +235,7 @@ func (mc *Minecraft) PlayerLeave(connection *Connection) {
 			connection.Player.EntityID,
 		}
 
-		destroyEntityPacket := Packet(&DestroyEntity{
+		destroyEntityPacket := packetType.Packet(&packetType.DestroyEntity{
 			Count:     1,
 			EntityIDs: destroyEntityIDs,
 		})
@@ -243,7 +244,7 @@ func (mc *Minecraft) PlayerLeave(connection *Connection) {
 	}
 }
 
-func (mc *Minecraft) SendToAllExcept(connection *Connection, packet *Packet) {
+func (mc *Minecraft) SendToAllExcept(connection *Connection, packet *packetType.Packet) {
 	for _, con := range mc.Connections {
 		if con == connection || con.Player == nil {
 			continue
@@ -252,7 +253,7 @@ func (mc *Minecraft) SendToAllExcept(connection *Connection, packet *Packet) {
 	}
 }
 
-func (mc *Minecraft) SendToAll(packet *Packet) {
+func (mc *Minecraft) SendToAll(packet *packetType.Packet) {
 	for _, con := range mc.Connections {
 		if con.Player == nil {
 			continue
@@ -263,7 +264,7 @@ func (mc *Minecraft) SendToAll(packet *Packet) {
 
 func (mc *Minecraft) StartPlayerJoin(connection *Connection) {
 	if connection.Minecraft.CompressionThreshold > 0 {
-		compressionPacket := Packet(&SetCompression{
+		compressionPacket := packetType.Packet(&packetType.SetCompression{
 			Threshold: connection.Minecraft.CompressionThreshold,
 		})
 		connection.SendPacket(&compressionPacket)
@@ -277,7 +278,7 @@ func (mc *Minecraft) StartPlayerJoin(connection *Connection) {
 		return
 	}
 
-	returnPacket := Packet(&LoginSuccess{
+	returnPacket := packetType.Packet(&packetType.LoginSuccess{
 		UUID:     stringUUID.String(),
 		Username: connection.Player.Username,
 	})
@@ -286,7 +287,7 @@ func (mc *Minecraft) StartPlayerJoin(connection *Connection) {
 
 	connection.State = PLAY
 
-	joinGame := Packet(&JoinGame{
+	joinGame := packetType.Packet(&packetType.JoinGame{
 		EntityID:            connection.Player.EntityID,
 		Gamemode:            0,
 		Dimension:           0,
@@ -300,7 +301,7 @@ func (mc *Minecraft) StartPlayerJoin(connection *Connection) {
 
 	connection.SendPacket(&joinGame)
 
-	pluginMessage := Packet(&PluginMessage{
+	pluginMessage := packetType.Packet(&packetType.PluginMessage{
 		IsServer:   false,
 		Identifier: "minecraft:brand",
 		ByteArray:  dataTypes.WriteString("BigPMC"),
@@ -308,7 +309,7 @@ func (mc *Minecraft) StartPlayerJoin(connection *Connection) {
 
 	connection.SendPacket(&pluginMessage)
 
-	difficulty := Packet(&ServerDifficulty{
+	difficulty := packetType.Packet(&packetType.ServerDifficulty{
 		Difficulty:       0,
 		DifficultyLocked: false,
 	})
@@ -324,7 +325,7 @@ func (mc *Minecraft) SendMessage(messageType byte, message entity.ChatMessage) {
 		return
 	}
 
-	chatPacket := Packet(&ChatMessage{
+	chatPacket := packetType.Packet(&packetType.ChatMessage{
 		ChatData: string(chatMessageJson),
 		Position: messageType,
 	})

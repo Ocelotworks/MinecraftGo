@@ -16,6 +16,8 @@ func (ls *JoinGame) GetPacketId() int {
 	return 0x26
 }
 
+/**
 func (ls *JoinGame) Handle(packet []byte, connection *Connection) {
 	//Client Only Packet
 }
+*/

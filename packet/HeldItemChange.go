@@ -1,7 +1,5 @@
 package packet
 
-import "fmt"
-
 type HeldItemChange struct {
 	Slot     byte `proto:"unsignedByte"`
 	IsServer bool
@@ -14,6 +12,8 @@ func (hic *HeldItemChange) GetPacketId() int {
 	return 0x40
 }
 
+/**
 func (hic *HeldItemChange) Handle(packet []byte, connection *Connection) {
 	fmt.Println("Held Item Change ", hic)
 }
+*/

@@ -8,6 +8,8 @@ func (d *Disconnect) GetPacketId() int {
 	return 0x01
 }
 
+/**
 func (d *Disconnect) Handle(packet []byte, connection *Connection) {
 	//Client Only Packet
 }
+*/

@@ -1,11 +1,5 @@
 package packet
 
-import (
-	"fmt"
-
-	"github.com/Ocelotworks/MinecraftGo/dataTypes"
-)
-
 type EntityAction struct {
 	EntityID  int `proto:"varInt"`
 	ActionID  int `proto:"varInt"`
@@ -16,6 +10,7 @@ func (ea *EntityAction) GetPacketId() int {
 	return 0x1B
 }
 
+/**
 func (ea *EntityAction) Handle(packet []byte, connection *Connection) {
 	//TODO: handle
 	fmt.Println("Entity action ", ea)
@@ -42,3 +37,4 @@ func (ea *EntityAction) Handle(packet []byte, connection *Connection) {
 	}
 
 }
+*/

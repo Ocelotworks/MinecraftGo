@@ -14,6 +14,8 @@ func (et *EntityTeleport) GetPacketId() int {
 	return 0x57
 }
 
+/**
 func (et *EntityTeleport) Handle(packet []byte, connection *Connection) {
 	//Client Only
 }
+*/

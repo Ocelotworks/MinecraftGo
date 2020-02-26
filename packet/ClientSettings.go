@@ -1,15 +1,5 @@
 package packet
 
-import (
-	"encoding/hex"
-	"fmt"
-	"math"
-	"math/rand"
-
-	"github.com/Ocelotworks/MinecraftGo/dataTypes"
-	"github.com/Ocelotworks/MinecraftGo/entity"
-)
-
 type ClientSettings struct {
 	Locale             string `proto:"string"`
 	ViewDistance       byte   `proto:"unsignedByte"`
@@ -23,6 +13,7 @@ func (cs *ClientSettings) GetPacketId() int {
 	return 0x05
 }
 
+/**
 func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 	fmt.Println("Got Client Settings:")
 	fmt.Println("Locale: ", cs.Locale)
@@ -104,14 +95,14 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 	fmt.Println("As json:")
 	fmt.Println(string(asJson))
 
-	*/
-	//output := nbtMap.(map[string]interface{})["Unnamed"].(map[string]interface{})["Compound_0"]
-	//level := output.(map[string]interface{})["Level"].(map[string]interface{})["Compound_0"].(map[string]interface{})
+*/
+//output := nbtMap.(map[string]interface{})["Unnamed"].(map[string]interface{})["Compound_0"]
+//level := output.(map[string]interface{})["Level"].(map[string]interface{})["Compound_0"].(map[string]interface{})
 
-	//palette := level["Sections"].(map[string]interface{})["List-0"].(map[string]interface{})["Compound_1"].(map[string]interface{})
+//palette := level["Sections"].(map[string]interface{})["List-0"].(map[string]interface{})["Compound_1"].(map[string]interface{})
 
-	//biomes := level["Biomes"].([]uint8)
-
+//biomes := level["Biomes"].([]uint8)
+/**
 	for x := 0; x < 7; x++ {
 		for y := 0; y < 7; y++ {
 			chunkSections := make([]dataTypes.NetChunkSection, 32)
@@ -177,3 +168,4 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 	//
 	//connection.SendPacket(&viewPos)
 }
+*/

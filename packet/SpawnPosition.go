@@ -8,6 +8,8 @@ func (sp *SpawnPosition) GetPacketId() int {
 	return 0x4E
 }
 
+/**
 func (sp *SpawnPosition) Handle(packet []byte, connection *Connection) {
 	//Client Only Packet
 }
+*/

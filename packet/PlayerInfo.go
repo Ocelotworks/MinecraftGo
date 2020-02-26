@@ -21,6 +21,7 @@ func (pirp *PlayerInfoRemovePlayer) GetPacketId() int {
 	return 0x34
 }
 
+/**
 func (piap *PlayerInfoAddPlayer) Handle(packet []byte, connection *Connection) {
 	//Client Only Packet
 }
@@ -28,3 +29,4 @@ func (piap *PlayerInfoAddPlayer) Handle(packet []byte, connection *Connection) {
 func (pirp *PlayerInfoRemovePlayer) Handle(packet []byte, connection *Connection) {
 	//Client Only Packet
 }
+*/

@@ -17,6 +17,8 @@ func (cd *ChunkData) GetPacketId() int {
 	return 0x22
 }
 
+/**
 func (cd *ChunkData) Handle(packet []byte, connection *Connection) {
 	//Client Only Packet
 }
+*/

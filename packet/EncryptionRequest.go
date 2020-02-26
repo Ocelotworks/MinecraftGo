@@ -12,6 +12,8 @@ func (er *EncryptionRequest) GetPacketId() int {
 	return 0x01
 }
 
+/**
 func (er *EncryptionRequest) Handle(packet []byte, connection *Connection) {
 	//No op
 }
+*/
