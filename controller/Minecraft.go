@@ -138,15 +138,14 @@ func (mc *Minecraft) UpdatePlayerPosition(connection *Connection, newX float64, 
 * Calculate crossing chunk boundary on player movement
  */
 func (mc *Minecraft) CalculateChunkBoundaryCrossing(connection *Connection, newX float64, newZ float64) {
-
 	currentXChunk := mc.BlockCoordToChunkCoord(connection.Player.X)
 	currentZChunk := mc.BlockCoordToChunkCoord(connection.Player.Z)
 
 	newXChunk := mc.BlockCoordToChunkCoord(newX)
 	newZChunk := mc.BlockCoordToChunkCoord(newZ)
-
 	// If we have crossed a chunk boundary send a chunk boundary update
 	if currentXChunk != newXChunk || currentZChunk != newZChunk {
+		//fmt.Printf("Updating view position: %d-%d \r\n", newXChunk, newZChunk)
 		updateViewPositionPacket := packetType.Packet(&packetType.UpdateViewPosition{
 			ChunkX: newXChunk,
 			ChunkZ: newZChunk,
@@ -157,8 +156,8 @@ func (mc *Minecraft) CalculateChunkBoundaryCrossing(connection *Connection, newX
 }
 
 func (mc *Minecraft) BlockCoordToChunkCoord(coord float64) int {
-	intcoord := int(math.Floor(coord))
-	return intcoord >> 4
+	intcoord := int(math.Floor(coord / 16))
+	return intcoord
 }
 
 func (mc *Minecraft) PlayerJoin(connection *Connection) {

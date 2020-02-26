@@ -29,7 +29,7 @@ func ReadVarInt(buf []byte) (interface{}, int) {
 }
 
 func WriteVarInt(value interface{}) []byte {
-	intValue := value.(int)
+	intValue := uint32(value.(int))
 	output := make([]byte, 0)
 	for {
 		temp := byte(intValue & 0b01111111)
