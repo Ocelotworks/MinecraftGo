@@ -29,7 +29,7 @@ func (ls *LoginStart) Handle(packet []byte, connection *Connection) {
 	connection.Player = &entity.Player{
 		Username:       ls.CurrentPacket.Username,
 		Properties:     []entity.PlayerProperty{},
-		Gamemode:       0,
+		Gamemode:       1,
 		Ping:           0,
 		HasDisplayName: true,
 		DisplayName: entity.ChatMessageComponent{

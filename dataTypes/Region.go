@@ -39,8 +39,12 @@ func ReadRegionFile(buf []byte) Region {
 
 	fmt.Println("Cursor: ", cursor)
 
-	chunk, _ := ReadChunk(buf[cursor:])
-	region.Chunks = []Chunk{chunk.(Chunk)}
+	region.Chunks = make([]Chunk, 1024)
+	for i := 0; i < 1024; i++ {
+		chunk, length := ReadChunk(buf[cursor:])
+		region.Chunks[i] = chunk.(Chunk)
+		cursor += length
+	}
 
 	return region
 }
