@@ -156,8 +156,8 @@ func (mc *Minecraft) CalculateChunkBoundaryCrossing(connection *Connection, newX
 }
 
 func (mc *Minecraft) BlockCoordToChunkCoord(coord float64) int {
-	intcoord := int(math.Floor(coord / 16))
-	return intcoord
+	intcoord := int(math.Floor(coord))
+	return intcoord >> 4
 }
 
 func (mc *Minecraft) PlayerJoin(connection *Connection) {
@@ -318,7 +318,7 @@ func (mc *Minecraft) StartPlayerJoin(connection *Connection) {
 
 	joinGame := packetType.Packet(&packetType.JoinGame{
 		EntityID:            connection.Player.EntityID,
-		Gamemode:            0,
+		Gamemode:            1,
 		Dimension:           0,
 		HashedSeed:          71495747907944700,
 		MaxPlayers:          byte(connection.Minecraft.MaxPlayers),
