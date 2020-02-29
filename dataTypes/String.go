@@ -3,8 +3,6 @@ package dataTypes
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
-
 	"github.com/Ocelotworks/MinecraftGo/entity"
 )
 
@@ -28,8 +26,8 @@ func WriteString(input interface{}) []byte {
 	}
 
 	output := WriteVarInt(len(b))
-	fmt.Println("String Length ", len(b))
-	fmt.Println(output)
+	//fmt.Println("String Length ", len(b))
+	//fmt.Println(output)
 	output = append(output, b...)
 	return output
 }

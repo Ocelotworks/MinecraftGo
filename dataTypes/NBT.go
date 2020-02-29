@@ -114,7 +114,7 @@ type NBTNamed struct {
 
 func NBTReadNamed(function func(buf []byte) (interface{}, int), typeId byte) func(buf []byte) (interface{}, int) {
 	return func(buf []byte) (interface{}, int) {
-		fmt.Printf("Reading named type of %d\n", typeId)
+		//fmt.Printf("Reading named type of %d\n", typeId)
 		named := NBTNamed{}
 		name, cursor := NBTReadString(buf)
 
@@ -215,13 +215,13 @@ func NBTWriteDouble(float interface{}) []byte {
 
 func NBTReadString(buf []byte) (interface{}, int) {
 	stringLength, cursor := NBTReadUnsignedShort(buf)
-	fmt.Println("Read string length ", stringLength)
+	//fmt.Println("Read string length ", stringLength)
 	return string(buf[cursor : int(stringLength.(uint16))+cursor]), int(stringLength.(uint16)) + cursor
 }
 
 func NBTWriteString(str interface{}) []byte {
 	output := []byte(str.(string))
-	fmt.Println("Writing string length ", uint16(len(output)))
+	//fmt.Println("Writing string length ", uint16(len(output)))
 	output = append(NBTWriteUnsignedShort(uint16(len(output))), output...)
 	return output
 }
@@ -246,8 +246,10 @@ func NBTWriteByteArray(arr interface{}) []byte {
 
 func NBTReadIntArray(buf []byte) (interface{}, int) {
 	length, cursor := NBTReadSignedInteger(buf)
+	//fmt.Println("Int array length ", length)
 	output := make([]byte, length.(int32))
 	for i := 0; int32(i) < (length.(int32)); i++ {
+		//fmt.Println("Reading int num ", i)
 		uncast, length := NBTReadSignedInteger(buf[i+cursor:])
 		output[i] = byte(uncast.(int32))
 		cursor += length
@@ -267,7 +269,7 @@ func NBTWriteIntArray(arr interface{}) []byte {
 func NBTReadLongArray(buf []byte) (interface{}, int) {
 	length, cursor := NBTReadSignedInteger(buf)
 	output := make([]int64, length.(int32))
-	fmt.Println("Long Array length ", length)
+	//fmt.Println("Long Array length ", length)
 	//fmt.Println(hex.Dump(buf))
 	for i := 0; int32(i) < (length.(int32)); i++ {
 		//fmt.Println("Reading long num", i, " at cursor pos ", cursor)
@@ -289,31 +291,31 @@ func NBTWriteLongArray(arr interface{}) []byte {
 }
 
 func NBTReadCompound(buf []byte) (interface{}, int) {
-	fmt.Println("Reading Compound")
+	//fmt.Println("Reading Compound")
 	return NBTRead(buf, 0)
 }
 
 func NBTRead(buf []byte, cursor int) ([]interface{}, int) {
 	into := make([]interface{}, 0)
-	fmt.Println("Reading Compound at cursor ", cursor)
+	//fmt.Println("Reading Compound at cursor ", cursor)
 	for {
 		if cursor >= len(buf) {
-			fmt.Println("NBT Read Cursor overrun ", cursor, len(buf))
+			//fmt.Println("NBT Read Cursor overrun ", cursor, len(buf))
 			break
 		}
 		contentsType := buf[cursor]
 		cursor++
 		if contentsType == 0x00 {
-			fmt.Println("NBT Tag End")
+			//fmt.Println("NBT Tag End")
 			break
 		}
-		fmt.Println("NBTRead Contents Type ", contentsType)
+		//fmt.Println("NBTRead Contents Type ", contentsType)
 		readMode := getNBTReadFunction(contentsType, false)
 		interf, length := readMode(buf[cursor:])
 		cursor += length
 		into = append(into, interf)
 	}
-	fmt.Println("Finished reading compound at cursor", cursor)
+	//fmt.Println("Finished reading compound at cursor", cursor)
 	return into, cursor
 }
 
@@ -353,11 +355,11 @@ func NBTReadList(buf []byte) (interface{}, int) {
 	list := NBTList{}
 
 	list.Type = buf[0]
-	fmt.Println("List type ", list.Type)
+	//fmt.Println("List type ", list.Type)
 	cursor := 1
 
 	listLength, length := NBTReadSignedInteger(buf[cursor:])
-	fmt.Println("List Length", listLength)
+	//fmt.Println("List Length", listLength)
 	cursor += length
 
 	if list.Type == 0 {
@@ -377,7 +379,7 @@ func NBTReadList(buf []byte) (interface{}, int) {
 	readFunction := getNBTReadFunction(list.Type, true)
 
 	for i := 0; i < int(listLength.(int32)); i++ {
-		fmt.Println("Reading tag for list type ", list.Type)
+		//fmt.Println("Reading tag for list type ", list.Type)
 		tag, length := readFunction(buf[cursor:])
 		cursor += length
 		list.Values[i] = tag
@@ -465,7 +467,7 @@ func NBTAsMap(input []interface{}) interface{} {
 		case NBTList:
 			output[fmt.Sprintf("List-%d", i)] = NBTAsMap((elem.(NBTList)).Values)
 		default:
-			fmt.Printf("unknown type %T\n", elem)
+			//fmt.Printf("unknown type %T\n", elem)
 			return elem
 		}
 	}

@@ -15,23 +15,6 @@ var minecraft *controller.Minecraft
 
 func main() {
 
-	//inData, exception := ioutil.ReadFile("world/region/r.0.0.mca")
-	//
-	//if exception != nil {
-	//	fmt.Println("Reading file")
-	//	fmt.Println(exception)
-	//	return
-	//}
-	//
-	//region := dataTypes.ReadRegionFile(inData)
-	//
-	//chunk := region.Chunks[0]
-	//
-	//output, _ := json.Marshal(dataTypes.NBTAsMap(chunk.Data))
-	//fmt.Println("Chunky chunk")
-	//fmt.Println(string(output))
-	//
-	//return
 	listener, exception := net.Listen("tcp", ":25565")
 
 	if exception != nil {
