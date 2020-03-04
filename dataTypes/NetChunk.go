@@ -13,6 +13,9 @@ func WriteChunk(c interface{}) []byte {
 	chunk := c.([]*NetChunkSection)
 	output := make([]byte, 0)
 	for _, chunkSection := range chunk {
+		if chunkSection == nil {
+			continue
+		}
 		output = append(output, WriteChunkSection(chunkSection)...)
 	}
 	return output
@@ -31,7 +34,7 @@ func WriteChunkSection(c interface{}) []byte {
 
 	for _, long := range chunk.DataArray {
 		b := make([]byte, 8)
-		binary.LittleEndian.PutUint64(b, uint64(long))
+		binary.BigEndian.PutUint64(b, uint64(long))
 		output = append(output, b...)
 	}
 

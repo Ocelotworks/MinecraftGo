@@ -66,7 +66,7 @@ func ReadChunk(buf []byte, blockData map[string]entity.BlockData) (interface{}, 
 	}
 
 	chunkSections := asMap["Sections"].(map[string]interface{})["List-0"].(map[string]interface{})
-	chunk.Sections = make([]*NetChunkSection, 0)
+	chunk.Sections = make([]*NetChunkSection, len(chunkSections))
 	fmt.Println(len(chunkSections), "chunk sections")
 	for x, section := range chunkSections {
 		rawChunkSection := section.(map[string]interface{})
@@ -124,7 +124,9 @@ func ReadChunk(buf []byte, blockData map[string]entity.BlockData) (interface{}, 
 			fmt.Println("Chunk Section does not have a palette!, ", bitsPerBlock)
 		}
 
-		chunk.Sections = append(chunk.Sections, &chunkSection)
+		orderStr := bytes.SplitN([]byte(x), []byte("_"), 2)[1]
+		order, _ := strconv.Atoi(string(orderStr))
+		chunk.Sections[order] = &chunkSection
 	}
 
 	//chunk.Data = chunkData.([]interface{})
