@@ -35,7 +35,7 @@ func (ls *LoginStart) Handle(packet []byte, connection *Connection) {
 		DisplayName: entity.ChatMessageComponent{
 			Text: ls.CurrentPacket.Username,
 		},
-		EntityID: connection.Minecraft.GobalEntityCounter,
+		EntityID: connection.Minecraft.GlobalEntityCounter,
 		X:        5,
 		Y:        255,
 		Z:        5,
@@ -44,7 +44,7 @@ func (ls *LoginStart) Handle(packet []byte, connection *Connection) {
 	}
 
 	// Increment the global entity counter
-	connection.Minecraft.GobalEntityCounter++
+	connection.Minecraft.GlobalEntityCounter++
 
 	if connection.Minecraft.EnableEncryption {
 		fmt.Println(connection.Key.PublicKey)

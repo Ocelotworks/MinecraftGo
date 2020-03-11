@@ -10,9 +10,12 @@ type NetChunkSection struct {
 }
 
 func WriteChunk(c interface{}) []byte {
-	chunk := c.([]NetChunkSection)
+	chunk := c.([]*NetChunkSection)
 	output := make([]byte, 0)
 	for _, chunkSection := range chunk {
+		if chunkSection == nil {
+			continue
+		}
 		output = append(output, WriteChunkSection(chunkSection)...)
 	}
 	return output
@@ -20,7 +23,7 @@ func WriteChunk(c interface{}) []byte {
 
 func WriteChunkSection(c interface{}) []byte {
 	output := make([]byte, 0)
-	chunk := c.(NetChunkSection)
+	chunk := c.(*NetChunkSection)
 
 	output = append(output, WriteUnsignedShort(chunk.BlockCount)...) //Block Count (short)
 	output = append(output, chunk.BitsPerBlock)                      //Bits per block (Byte)
@@ -31,7 +34,7 @@ func WriteChunkSection(c interface{}) []byte {
 
 	for _, long := range chunk.DataArray {
 		b := make([]byte, 8)
-		binary.LittleEndian.PutUint64(b, uint64(long))
+		binary.BigEndian.PutUint64(b, uint64(long))
 		output = append(output, b...)
 	}
 

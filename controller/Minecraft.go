@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math"
 
 	"github.com/Ocelotworks/MinecraftGo/dataTypes"
@@ -18,12 +19,14 @@ type Minecraft struct {
 	MaxPlayers           int
 	EnableEncryption     bool
 	CompressionThreshold int
-	GobalEntityCounter   int
+	GlobalEntityCounter  int
+	BlockData            map[string]entity.BlockData
 }
 
 func CreateMinecraft() *Minecraft {
 	purple := entity.Purple
-	return &Minecraft{
+
+	mc := &Minecraft{
 		//Connections: make([]*packet.Connection, 0),
 		ServerName: entity.ChatMessageComponent{
 			Text:   "Petecraft",
@@ -33,8 +36,19 @@ func CreateMinecraft() *Minecraft {
 		ConnectedPlayers:     0,
 		EnableEncryption:     true,
 		CompressionThreshold: -1,
-		GobalEntityCounter:   1,
+		GlobalEntityCounter:  1,
+		BlockData:            make(map[string]entity.BlockData),
 	}
+
+	blockFile, exception := ioutil.ReadFile("data/blocks.json")
+	exception = json.Unmarshal(blockFile, &mc.BlockData)
+
+	if exception != nil {
+		fmt.Println("Error reading block data", exception)
+		return mc
+	}
+
+	return mc
 }
 
 func calculateDeltas(player *entity.Player, newX float64, newY float64, newZ float64) (int16, int16, int16, float64, float64, float64) {
@@ -79,7 +93,7 @@ func (mc *Minecraft) UpdatePlayerPosition(connection *Connection, newX float64, 
 		return
 	}
 
-	mc.CalculateChunkBoundaryCrossing(connection, newX, newZ)
+	//mc.CalculateChunkBoundaryCrossing(connection, newX, newZ)
 
 	deltaX, deltaY, deltaZ, blockDeltaX, blockDeltaY, blockDeltaZ := calculateDeltas(connection.Player, newX, newY, newZ)
 	if deltaX != 0 || deltaY != 0 || deltaZ != 0 {
