@@ -63,6 +63,7 @@ var controllers = map[State][]Packet{
 		0x12: &PlayerPositionAndRotation{},
 		0x13: &PlayerRotation{},
 		0x14: &PlayerMovement{},
+		0x19: &PlayerAbilities{},
 		0x1A: &PlayerDigging{},
 		0x1B: &EntityAction{},
 		0x23: &HeldItemChange{},
