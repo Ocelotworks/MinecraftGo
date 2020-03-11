@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
+	"time"
 
 	"github.com/Ocelotworks/MinecraftGo/dataTypes"
 	"github.com/Ocelotworks/MinecraftGo/entity"
@@ -21,6 +22,8 @@ type Minecraft struct {
 	CompressionThreshold int
 	GlobalEntityCounter  int
 	BlockData            map[string]entity.BlockData
+	WorldAge             int64
+	TimeOfDay            int64
 }
 
 func CreateMinecraft() *Minecraft {
@@ -47,6 +50,8 @@ func CreateMinecraft() *Minecraft {
 		fmt.Println("Error reading block data", exception)
 		return mc
 	}
+
+	go mc.timeTracker()
 
 	return mc
 }
@@ -305,6 +310,15 @@ func (mc *Minecraft) SendToAll(packet *packetType.Packet) {
 	}
 }
 
+func (mc *Minecraft) SendToAllInPlay(packet *packetType.Packet) {
+	for _, con := range mc.Connections {
+		if con.Player == nil || con.State != PLAY {
+			continue
+		}
+		con.SendPacket(packet)
+	}
+}
+
 func (mc *Minecraft) StartPlayerJoin(connection *Connection) {
 	if connection.Minecraft.CompressionThreshold > 0 {
 		compressionPacket := packetType.Packet(&packetType.SetCompression{
@@ -383,4 +397,24 @@ func (mc *Minecraft) SendMessage(messageType byte, message entity.ChatMessage) {
 		}
 	}
 
+}
+
+func (mc *Minecraft) timeTracker() {
+	for {
+		<-time.After(time.Second)
+
+		mc.TimeOfDay += 20
+		mc.WorldAge += 20
+
+		if mc.TimeOfDay > 24000 {
+			mc.TimeOfDay = 0
+		}
+
+		packet := packetType.Packet(&packetType.TimeUpdate{
+			WorldAge:  mc.WorldAge,
+			TimeOfDay: mc.TimeOfDay,
+		})
+
+		mc.SendToAllInPlay(&packet)
+	}
 }

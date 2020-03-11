@@ -30,6 +30,13 @@ func (pd *PlayerDigging) Handle(packet []byte, connection *Connection) {
 			Successful: true,
 		})
 		connection.SendPacket(&acknowledge)
+
+		blockChangePacket := packetType.Packet(&packetType.BlockChange{
+			Location: pd.CurrentPacket.Location,
+			BlockID:  0,
+		})
+
+		connection.Minecraft.SendToAllInPlay(&blockChangePacket)
 	}
 
 }
