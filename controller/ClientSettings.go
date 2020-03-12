@@ -71,7 +71,7 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 
 	fmt.Println(hex.Dump(heightMaps))
 
-	inData, exception := ioutil.ReadFile("data/worlds/world/region/r.0.0.mca") //ioutil.ReadFile("C:\\Users\\Peter\\AppData\\Roaming\\.minecraft\\saves\\MCGO Flat Test 2\\region\\r.0.0.mca")
+	inData, exception := ioutil.ReadFile("data/worlds/world/region/r.1.1.mca") //ioutil.ReadFile("C:\\Users\\Peter\\AppData\\Roaming\\.minecraft\\saves\\MCGO Flat Test 2\\region\\r.0.0.mca")
 
 	if exception != nil {
 		fmt.Println("Reading file")
@@ -108,7 +108,7 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 		})
 
 		connection.SendPacket(&chunkData)
-		//break
+
 	}
 
 	playerSpawn := packetType.Packet(&packetType.SpawnPosition{
@@ -128,7 +128,6 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 	})
 
 	connection.SendPacket(&playerPos)
-
 	connection.Minecraft.PlayerJoin(connection)
 
 	//TODO Player info

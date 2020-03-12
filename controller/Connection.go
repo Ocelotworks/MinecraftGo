@@ -22,7 +22,7 @@ type Connection struct {
 	Key               *rsa.PrivateKey
 	Minecraft         *Minecraft
 	Player            *entity.Player
-	KeepAliveID       int64
+	Ping              int
 	EnableCompression bool
 	EnableEncryption  bool
 
@@ -113,9 +113,9 @@ func Init(conn net.Conn, key *rsa.PrivateKey, minecraft *Minecraft) *Connection 
 		Conn:              conn,
 		Key:               key,
 		Minecraft:         minecraft,
-		KeepAliveID:       0,
 		EnableCompression: false,
 		EnableEncryption:  false,
+		Ping:              -1,
 	}
 
 	go newConnection.Handle()
@@ -129,10 +129,8 @@ func (c *Connection) sendKeepAlive() {
 		<-time.After(15 * time.Second)
 		fmt.Println("Sending keepalive")
 		keepAlive := packetType.Packet(&packetType.KeepAlive{
-			ID: c.KeepAliveID,
+			ID: time.Now().Unix(),
 		})
-
-		c.KeepAliveID++
 
 		exception := c.SendPacket(&keepAlive)
 		if exception != nil {

@@ -1,6 +1,8 @@
 package dataTypes
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+)
 
 type NetChunkSection struct {
 	BlockCount   uint16  //short
@@ -50,3 +52,13 @@ func WriteChunkPalette(p interface{}) []byte {
 
 	return output
 }
+
+//
+// func ReadBlockArray(bitsPerBlock int, dataArray []int64, palette []int) []block.Block{
+// 	output := make([]block.Block, 4096)
+// 	for i, block := range dataArray {
+//
+// 	}
+// 	return output
+// }
+//

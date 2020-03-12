@@ -98,7 +98,7 @@ func (mc *Minecraft) UpdatePlayerPosition(connection *Connection, newX float64, 
 		return
 	}
 
-	//mc.CalculateChunkBoundaryCrossing(connection, newX, newZ)
+	mc.CalculateChunkBoundaryCrossing(connection, newX, newZ)
 
 	deltaX, deltaY, deltaZ, blockDeltaX, blockDeltaY, blockDeltaZ := calculateDeltas(connection.Player, newX, newY, newZ)
 	if deltaX != 0 || deltaY != 0 || deltaZ != 0 {
@@ -245,6 +245,33 @@ func (mc *Minecraft) PlayerJoin(connection *Connection) {
 	}
 
 	go mc.SendMessage(1, chatMessage)
+
+	bold := true
+	headerComponents := []entity.ChatMessageComponent{
+		{
+			Text: "Big P MC",
+			Bold: &bold,
+		},
+	}
+
+	listHeader := entity.ChatMessage{
+		Translate: "%s",
+		With:      &headerComponents,
+	}
+
+	listFooter := entity.ChatMessage{
+		Translate: "",
+	}
+
+	header, _ := json.Marshal(listHeader)
+	footer, _ := json.Marshal(listFooter)
+
+	packet = &packetType.PlayerListHeaderAndFooter{
+		Header: string(header),
+		Footer: string(footer),
+	}
+
+	connection.SendPacket(&packet)
 
 	go connection.sendKeepAlive()
 }

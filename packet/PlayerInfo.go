@@ -13,11 +13,22 @@ type PlayerInfoRemovePlayer struct {
 	UUID            []byte `proto:"uuid"`
 }
 
+type PlayerInfoUpdatePing struct {
+	Action          int    `proto:"varInt"`
+	NumberOfPlayers int    `proto:"varInt"`
+	UUID            []byte `proto:"uuid"`
+	Ping            int    `proto:"varInt"`
+}
+
 func (piap *PlayerInfoAddPlayer) GetPacketId() int {
 	return 0x34
 }
 
 func (pirp *PlayerInfoRemovePlayer) GetPacketId() int {
+	return 0x34
+}
+
+func (piup *PlayerInfoUpdatePing) GetPacketId() int {
 	return 0x34
 }
 
