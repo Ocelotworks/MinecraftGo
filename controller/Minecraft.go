@@ -51,7 +51,7 @@ func CreateMinecraft() *Minecraft {
 		return mc
 	}
 
-	go mc.timeTracker()
+	//go mc.timeTracker()
 
 	return mc
 }

@@ -2,6 +2,7 @@ package dataTypes
 
 import (
 	"encoding/binary"
+	"fmt"
 )
 
 type NetChunkSection struct {
@@ -14,8 +15,10 @@ type NetChunkSection struct {
 func WriteChunk(c interface{}) []byte {
 	chunk := c.([]*NetChunkSection)
 	output := make([]byte, 0)
+	fmt.Println("Chunk is section length", len(chunk))
 	for _, chunkSection := range chunk {
 		if chunkSection == nil {
+			fmt.Println("Chunk section is nil")
 			continue
 		}
 		output = append(output, WriteChunkSection(chunkSection)...)
@@ -27,6 +30,7 @@ func WriteChunkSection(c interface{}) []byte {
 	output := make([]byte, 0)
 	chunk := c.(*NetChunkSection)
 
+	fmt.Println("Writing chunk section")
 	output = append(output, WriteUnsignedShort(chunk.BlockCount)...) //Block Count (short)
 	output = append(output, chunk.BitsPerBlock)                      //Bits per block (Byte)
 	if len(chunk.Palette) > 0 {

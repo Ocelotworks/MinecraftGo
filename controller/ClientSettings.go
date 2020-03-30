@@ -71,7 +71,7 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 
 	fmt.Println(hex.Dump(heightMaps))
 
-	inData, exception := ioutil.ReadFile("data/worlds/world/region/r.1.1.mca") //ioutil.ReadFile("C:\\Users\\Peter\\AppData\\Roaming\\.minecraft\\saves\\MCGO Flat Test 2\\region\\r.0.0.mca")
+	inData, exception := ioutil.ReadFile("data/worlds/world/region/r.0.0.mca") //ioutil.ReadFile("C:\\Users\\Peter\\AppData\\Roaming\\.minecraft\\saves\\MCGO Flat Test 2\\region\\r.0.0.mca")
 
 	if exception != nil {
 		fmt.Println("Reading file")
@@ -88,6 +88,7 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 	//byte((len(castBlockStates)*64)/4096),
 
 	for i, chunk := range region.Chunks {
+		fmt.Println(chunk)
 		chunkRaw := dataTypes.WriteChunk(chunk.Sections)
 		fmt.Println(len(chunk.Sections))
 		if len(chunk.Sections) == 0 {

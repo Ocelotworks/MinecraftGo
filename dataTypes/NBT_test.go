@@ -1,13 +1,12 @@
 package dataTypes
 
 import (
-	"bytes"
-	"compress/gzip"
 	"encoding/hex"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNBTReadWriteSignedInteger(t *testing.T) {
@@ -104,29 +103,29 @@ func TestNBTReadWriteTest(t *testing.T) {
 	assert.Equal(t, read2, read)
 }
 
-func TestNBTReadWriteBigTest(t *testing.T) {
-	buf, exception := ioutil.ReadFile("../nbt-test/bigtest.nbt")
-
-	compressed := bytes.NewReader(buf)
-	zr, exception := gzip.NewReader(compressed)
-	assert.Nil(t, exception)
-
-	uncompressed, exception := ioutil.ReadAll(zr)
-	assert.Nil(t, exception)
-
-	inData := uncompressed
-
-	assert.Nil(t, exception)
-
-	fmt.Println("===READING===")
-	read, _ := ReadNBT(inData)
-	fmt.Println("====WRITING====")
-	write := NBTWriteCompound(read)
-	fmt.Println("====READING AGAIN===")
-	read2, _ := ReadNBT(write)
-
-	assert.Equal(t, len(read2.([]interface{})), len(read.([]interface{})))
-}
+//func TestNBTReadWriteBigTest(t *testing.T) {
+//	buf, exception := ioutil.ReadFile("../nbt-test/bigtest.nbt")
+//
+//	compressed := bytes.NewReader(buf)
+//	zr, exception := gzip.NewReader(compressed)
+//	assert.Nil(t, exception)
+//
+//	uncompressed, exception := ioutil.ReadAll(zr)
+//	assert.Nil(t, exception)
+//
+//	inData := uncompressed
+//
+//	assert.Nil(t, exception)
+//
+//	fmt.Println("===READING===")
+//	read, _ := ReadNBT(inData)
+//	fmt.Println("====WRITING====")
+//	write := NBTWriteCompound(read)
+//	fmt.Println("====READING AGAIN===")
+//	read2, _ := ReadNBT(write)
+//
+//	assert.Equal(t, len(read2.([]interface{})), len(read.([]interface{})))
+//}
 
 func TestNBTReadWriteLongArray(t *testing.T) {
 	tests := [][]int64{

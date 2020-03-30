@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"compress/zlib"
 	"fmt"
-	"github.com/Ocelotworks/MinecraftGo/entity"
 	"io"
-	"strconv"
+
+	"github.com/Ocelotworks/MinecraftGo/entity"
 )
 
 type Chunk struct {
@@ -14,6 +14,48 @@ type Chunk struct {
 	CompressionScheme byte
 	Biomes            []byte
 	Sections          []*NetChunkSection
+}
+
+type RegionChunk struct {
+	Level ChunkLevel `nbt:"Level"`
+}
+
+type ChunkLevel struct {
+	XPos       int32          `nbt:"xPos"`
+	ZPos       int32          `nbt:"zPos"`
+	LastUpdate int64          `nbt:"LastUpdate"`
+	Biomes     []byte         `nbt:"Biomes"`
+	Entities   []ChunkEntity  `nbt:"Entities"`
+	Sections   []ChunkSection `nbt:"Sections"`
+	HeightMap  []int32        `nbt:"HeightMap"`
+}
+
+type ChunkEntity struct {
+	OnGround     bool      `nbt:"OnGround"`
+	Air          int16     `nbt:"Air"`
+	AttackTime   int16     `nbt:"AttackTime"`
+	DeathTime    int16     `nbt:"DeathTime"`
+	Fire         int16     `nbt:"Fire"`
+	Health       int16     `nbt:"Health"`
+	FallDistance float32   `nbt:"FallDistance"`
+	ID           string    `nbt:"id"`
+	Position     []float64 `nbt:"Pos"`
+	Rotation     []float32 `nbt:"Rotation"`
+}
+
+type ChunkSection struct {
+	Y           int8            `nbt:"Y"`
+	BlockLight  []byte          `nbt:"BlockLight"`
+	Blocks      []byte          `nbt:"Blocks"`
+	Data        []byte          `nbt:"Data"`
+	SkyLight    []byte          `nbt:"SkyLight"`
+	BlockStates []int64         `nbt:"BlockStates"`
+	Palette     []*ChunkPalette `nbt:"Palette"`
+}
+
+type ChunkPalette struct {
+	Name       string                 `nbt:"Name"`
+	Properties map[string]interface{} `nbt:"Properties"`
 }
 
 func ReadChunk(buf []byte, blockData map[string]entity.BlockData) (interface{}, int) {
@@ -50,59 +92,44 @@ func ReadChunk(buf []byte, blockData map[string]entity.BlockData) (interface{}, 
 	chunkData, length := ReadNBT(decompressedBytes)
 	cursor += length
 
-	level := chunkData.([]interface{})[0].(NBTNamed).Data.([]interface{})[0].(NBTNamed).Data
+	regionChunk := RegionChunk{}
+	NBTStructScan(chunkData, &regionChunk)
 
-	asMap := NBTAsMap(level.([]interface{})).(map[string]interface{})
-
-	if asMap["Biomes"] == nil {
+	if regionChunk.Level.Biomes == nil {
 		fmt.Println("No biomes")
 	} else {
-		chunk.Biomes = asMap["Biomes"].([]byte)
+		chunk.Biomes = regionChunk.Level.Biomes
 	}
 
-	if asMap["Sections"] == nil {
+	if regionChunk.Level.Sections == nil {
 		fmt.Println("Chunk has no sections")
 		return chunk, cursor
 	}
 
-	chunkSections := asMap["Sections"].(map[string]interface{})["List-0"].(map[string]interface{})
+	chunkSections := regionChunk.Level.Sections
 	chunk.Sections = make([]*NetChunkSection, len(chunkSections))
 	fmt.Println(len(chunkSections), "chunk sections")
 	for x, section := range chunkSections {
-		rawChunkSection := section.(map[string]interface{})
-		if rawChunkSection["BlockStates"] == nil {
+		if section.BlockStates == nil {
 			fmt.Println("!!! Skipping section as it has no blockstates ", x)
 			continue
 		}
-
-		blockStates := rawChunkSection["BlockStates"].([]int64)
-		bitsPerBlock := byte((len(blockStates) * 64) / 4096)
+		bitsPerBlock := byte((len(section.BlockStates) * 64) / 4096)
 		chunkSection := NetChunkSection{
 			BlockCount:   1,
 			BitsPerBlock: bitsPerBlock,
 			Palette:      []int{},
-			DataArray:    blockStates,
+			DataArray:    section.BlockStates,
 		}
 
-		if rawChunkSection["Palette"] != nil {
-			rawPalette := rawChunkSection["Palette"].(map[string]interface{})["List-0"].(map[string]interface{})
-
-			outputPalette := make([]int, len(rawPalette))
-			i := 0
-			for x, rawPaletteItem := range rawPalette {
-				//God this is horrible but it will do for now
-				orderStr := bytes.SplitN([]byte(x), []byte("_"), 2)[1]
-				order, _ := strconv.Atoi(string(orderStr))
-
-				fmt.Println(orderStr)
-
-				paletteItem := rawPaletteItem.(map[string]interface{})
-				block := blockData[paletteItem["Name"].(string)]
-				if paletteItem["Properties"] != nil {
-					blockProperties := paletteItem["Properties"].(map[string]interface{})["Compound_0"].(map[string]interface{})
+		if section.Palette != nil {
+			outputPalette := make([]int, len(section.Palette))
+			for order, paletteItem := range section.Palette {
+				block := blockData[paletteItem.Name]
+				if paletteItem.Properties != nil {
 					for _, state := range block.States {
 						found := true
-						for propertyName, property := range blockProperties {
+						for propertyName, property := range paletteItem.Properties {
 							if state.Properties[propertyName] != property.(string) {
 								found = false
 								break
@@ -116,7 +143,6 @@ func ReadChunk(buf []byte, blockData map[string]entity.BlockData) (interface{}, 
 				} else {
 					outputPalette[order] = block.States[0].ID
 				}
-				i++
 			}
 
 			chunkSection.Palette = outputPalette
@@ -124,12 +150,10 @@ func ReadChunk(buf []byte, blockData map[string]entity.BlockData) (interface{}, 
 			fmt.Println("Chunk Section does not have a palette!, ", bitsPerBlock)
 		}
 
-		orderStr := bytes.SplitN([]byte(x), []byte("_"), 2)[1]
-		order, _ := strconv.Atoi(string(orderStr))
-		chunk.Sections[order] = &chunkSection
+		chunk.Sections[x] = &chunkSection
 	}
 
 	//chunk.Data = chunkData.([]interface{})
 
-	return chunk, cursor
+	return nil, 0
 }

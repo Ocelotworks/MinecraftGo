@@ -7,9 +7,27 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
+	"reflect"
+	"strings"
 )
 
-func ReadNBT(buf []byte) (interface{}, int) {
+const (
+	nbtTagEnd    = 0
+	nbtByte      = 1
+	nbtShort     = 2
+	nbtInt       = 3
+	nbtLong      = 4
+	nbtFloat     = 5
+	nbtDouble    = 6
+	nbtByteArray = 7
+	nbtString    = 8
+	nbtList      = 9
+	nbtCompound  = 10
+	nbtIntArray  = 11
+	nbtLongArray = 12
+)
+
+func ReadNBT(buf []byte) ([]*NBTNamed, int) {
 	data := buf
 	//gzip header
 	if buf[0] == 0x1f && buf[1] == 0x8b {
@@ -33,105 +51,155 @@ func ReadNBT(buf []byte) (interface{}, int) {
 	//b, _ := json.Marshal(compound)
 	//fmt.Println(string(b))
 
-	return compound, 0
+	return compound.([]*NBTNamed), 0
 }
 
-func getNBTReadFunction(index byte, list bool) func(buf []byte) (interface{}, int) {
-	if list {
-		switch index {
-		case 1:
-			return NBTReadByte
-		case 2:
-			return NBTReadSignedShort
-		case 3:
-			return NBTReadSignedInteger
-		case 4:
-			return NBTReadSignedLong
-		case 5:
-			return NBTReadFloat
-		case 6:
-			return NBTReadDouble
-		case 7:
-			return NBTReadByteArray
-		case 8:
-			return NBTReadString
-		case 9:
-			return NBTReadList
-		case 10:
-			return NBTReadCompound
-		case 11:
-			return NBTReadIntArray
-		case 12:
-			return NBTReadLongArray
-
-		}
-		fmt.Println("!!!!! Unknown Type ", index)
-		return nil
+func getNBTReadFunction(index byte) func(buf []byte) (interface{}, int) {
+	switch index {
+	case nbtByte:
+		return NBTReadByte
+	case nbtShort:
+		return NBTReadSignedShort
+	case nbtInt:
+		return NBTReadSignedInteger
+	case nbtLong:
+		return NBTReadSignedLong
+	case nbtFloat:
+		return NBTReadFloat
+	case nbtDouble:
+		return NBTReadDouble
+	case nbtByteArray:
+		return NBTReadByteArray
+	case nbtString:
+		return NBTReadString
+	case nbtList:
+		return NBTReadList
+	case nbtCompound:
+		return NBTReadCompound
+	case nbtIntArray:
+		return NBTReadIntArray
+	case nbtLongArray:
+		return NBTReadLongArray
 	}
-	return NBTReadNamed(getNBTReadFunction(index, true), index)
+	fmt.Println("!!!!! Unknown Type ", index)
+	return nil
 }
 
 func getNBTWriteFunction(index byte, name string) func(input interface{}) []byte {
-	if name == "none" {
+	if strings.HasPrefix(name, "List_") {
 		switch index {
-		case 1:
+		case nbtByte:
 			return NBTWriteByte
-		case 2:
+		case nbtShort:
 			return NBTWriteSignedShort
-		case 3:
+		case nbtInt:
 			return NBTWriteSignedInteger
-		case 4:
+		case nbtLong:
 			return NBTWriteSignedLong
-		case 5:
+		case nbtFloat:
 			return NBTWriteFloat
-		case 6:
+		case nbtDouble:
 			return NBTWriteDouble
-		case 7:
+		case nbtByteArray:
 			return NBTWriteByteArray
-		case 8:
+		case nbtString:
 			return NBTWriteString
-		case 9:
+		case nbtList:
 			return NBTWriteList
-		case 10:
+		case nbtCompound:
 			return NBTWriteCompound
-		case 11:
+		case nbtIntArray:
 			return NBTWriteIntArray
-		case 12:
+		case nbtLongArray:
 			return NBTWriteLongArray
 		}
 		fmt.Println("!!!!! Unknown Type ", index)
 		return nil
 	}
 	fmt.Println("write function ", name)
-	return NBTWriteNamed(getNBTWriteFunction(index, "none"), index, name)
+	return NBTWriteNamed(getNBTWriteFunction(index, "List_"), index, name)
+}
+
+func getNBTType(value interface{}) byte {
+	switch value.(type) {
+	case byte:
+	case bool:
+	case int8:
+		return nbtByte
+	case int16:
+		return nbtShort
+	case int32:
+		return nbtInt
+	case int:
+	case int64:
+		return nbtLong
+	case float32:
+		return nbtFloat
+	case float64:
+		return nbtDouble
+	case []byte:
+	case []bool:
+	case []int8:
+		return nbtByteArray
+	case string:
+		return nbtString
+	case []int32:
+		return nbtIntArray
+	case []int64:
+	case []int:
+		return nbtLongArray
+	}
+	reflectedValue := reflect.TypeOf(value)
+
+	if isCustom(reflectedValue) {
+		return nbtCompound
+	}
+
+	if reflectedValue.Kind().String() == "slice" {
+		return nbtList
+	}
+
+	fmt.Printf("!!! Unknown compound type %T\n", value)
+	return 0x00
+}
+
+func getNBTTypeFromString(name string) byte {
+	switch name {
+	case "end":
+		return nbtTagEnd
+	case "byte":
+		return nbtByte
+	case "short":
+		return nbtShort
+	case "int":
+		return nbtInt
+	case "long":
+		return nbtLong
+	case "float":
+		return nbtFloat
+	case "double":
+		return nbtDouble
+	case "byteArray":
+		return nbtByteArray
+	case "string":
+		return nbtString
+	case "list":
+		return nbtList
+	case "compound":
+		return nbtCompound
+	case "intArray":
+		return nbtIntArray
+	case "longArray":
+		return nbtLongArray
+	}
+	fmt.Println("!!! Unknown compound type ", name)
+	return 0x00
 }
 
 type NBTNamed struct {
 	Name string      `json:"name"`
 	Data interface{} `json:"data"`
 	Type byte        `json:"type"`
-}
-
-func NBTReadNamed(function func(buf []byte) (interface{}, int), typeId byte) func(buf []byte) (interface{}, int) {
-	return func(buf []byte) (interface{}, int) {
-		//fmt.Printf("Reading named type of %d\n", typeId)
-		named := NBTNamed{}
-		name, cursor := NBTReadString(buf)
-
-		named.Name = name.(string)
-		fmt.Println("--- TAG START: ", named.Name)
-		if function == nil {
-			fmt.Println("??? Nil function reading Named NBT Tag")
-			return named, cursor
-		}
-		value, length := function(buf[cursor:])
-		cursor += length
-		named.Data = value
-		named.Type = typeId
-		fmt.Println("--- TAG END: ", named.Name)
-
-		return named, cursor
-	}
 }
 
 func NBTWriteNamed(function func(input interface{}) []byte, index byte, name string) func(input interface{}) []byte {
@@ -295,8 +363,8 @@ func NBTReadCompound(buf []byte) (interface{}, int) {
 	return NBTRead(buf, 0)
 }
 
-func NBTRead(buf []byte, cursor int) ([]interface{}, int) {
-	into := make([]interface{}, 0)
+func NBTRead(buf []byte, cursor int) ([]*NBTNamed, int) {
+	into := make([]*NBTNamed, 0)
 	//fmt.Println("Reading Compound at cursor ", cursor)
 	for {
 		if cursor >= len(buf) {
@@ -305,15 +373,21 @@ func NBTRead(buf []byte, cursor int) ([]interface{}, int) {
 		}
 		contentsType := buf[cursor]
 		cursor++
-		if contentsType == 0x00 {
+		if contentsType == nbtTagEnd {
 			//fmt.Println("NBT Tag End")
 			break
 		}
 		//fmt.Println("NBTRead Contents Type ", contentsType)
-		readMode := getNBTReadFunction(contentsType, false)
+		named := NBTNamed{}
+		name, length := NBTReadString(buf[cursor:])
+		cursor += length
+		named.Name = name.(string)
+		named.Type = contentsType
+		readMode := getNBTReadFunction(contentsType)
 		interf, length := readMode(buf[cursor:])
 		cursor += length
-		into = append(into, interf)
+		named.Data = interf
+		into = append(into, &named)
 	}
 	//fmt.Println("Finished reading compound at cursor", cursor)
 	return into, cursor
@@ -325,7 +399,7 @@ func NBTWriteCompound(input interface{}) []byte {
 	for _, element := range compound {
 		output = append(output, NBTWrite(element)...)
 	}
-	return append(output, 0x00)
+	return append(output, nbtTagEnd)
 }
 
 func NBTWrite(element interface{}) []byte {
@@ -376,7 +450,10 @@ func NBTReadList(buf []byte) (interface{}, int) {
 
 	//fmt.Println(hex.Dump(buf))
 
-	readFunction := getNBTReadFunction(list.Type, true)
+	named := NBTNamed{}
+	named.Name = fmt.Sprintf("List_%d", cursor)
+	named.Type = list.Type
+	readFunction := getNBTReadFunction(list.Type)
 
 	for i := 0; i < int(listLength.(int32)); i++ {
 		//fmt.Println("Reading tag for list type ", list.Type)
@@ -385,7 +462,9 @@ func NBTReadList(buf []byte) (interface{}, int) {
 		list.Values[i] = tag
 	}
 
-	return list, cursor
+	named.Data = list
+
+	return named, cursor
 }
 
 func NBTWriteList(input interface{}) []byte {
@@ -473,4 +552,142 @@ func NBTAsMap(input []interface{}) interface{} {
 	}
 	return output
 
+}
+
+func isCustom(t reflect.Type) bool {
+	if t.PkgPath() != "" {
+		return true
+	}
+
+	if k := t.Kind(); k == reflect.Array || k == reflect.Chan || k == reflect.Map ||
+		k == reflect.Ptr || k == reflect.Slice {
+		return isCustom(t.Elem()) || k == reflect.Map && isCustom(t.Key())
+	} else if k == reflect.Struct {
+		for i := t.NumField() - 1; i >= 0; i-- {
+			if isCustom(t.Field(i).Type) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func NBTWriteStruct(input interface{}) []*NBTNamed {
+	output := make([]*NBTNamed, 0)
+	v := reflect.ValueOf(input).Elem()
+	t := reflect.TypeOf(input).Elem()
+	fmt.Println("Struct scanning Fields: ", t.NumField())
+	for fieldIndex := 0; fieldIndex < t.NumField(); fieldIndex++ {
+		field := t.Field(fieldIndex)
+		tag, exists := field.Tag.Lookup("nbt")
+		if !exists {
+			fmt.Println("no NBT tag present on", field.Name)
+			continue
+		}
+		tags := strings.SplitN(tag, ",", 2)
+
+		tagName := tags[0]
+		fmt.Println("Tag Name:", tags[0])
+
+		if strings.HasSuffix(tagName, "*") {
+			fmt.Println("can't convert wildcards to nbt")
+			continue
+		}
+
+		namedStruct := NBTNamed{
+			Name: tagName,
+		}
+		fieldValue := v.FieldByName(field.Name)
+		if isCustom(field.Type) {
+			namedStruct.Type = nbtCompound
+			namedStruct.Data = NBTWriteStruct(fieldValue.Addr())
+		}
+
+		if len(tags) > 1 {
+			fmt.Println("Tag has type override: ", tags[1])
+			namedStruct.Type = getNBTTypeFromString(tags[1])
+		} else {
+			namedStruct.Type = getNBTType(fieldValue.Interface())
+		}
+
+		namedStruct.Data = fieldValue.Interface()
+
+		output = append(output, &namedStruct)
+	}
+	return output
+}
+
+func NBTStructScan(nbt []*NBTNamed, output interface{}) {
+	v := reflect.ValueOf(output).Elem()
+	t := reflect.TypeOf(output).Elem()
+	fmt.Println("Struct scanning Fields: ", t.NumField())
+	for fieldIndex := 0; fieldIndex < t.NumField(); fieldIndex++ {
+		field := t.Field(fieldIndex)
+		tag, exists := field.Tag.Lookup("nbt")
+		if !exists {
+			fmt.Println("no NBT tag present on", field.Name)
+			continue
+		}
+		tags := strings.SplitN(tag, ",", 2)
+		tagName := tags[0]
+		fmt.Println("Tag Name:", tags[0])
+
+		isWildcard := false
+
+		if strings.HasSuffix(tagName, "*") {
+			isWildcard = true
+			tagName = strings.TrimRight(tagName, "*")
+		}
+		var targetTag *NBTNamed
+
+		if len(nbt) == 1 && nbt[0].Name == "" {
+			nbt = nbt[0].Data.([]*NBTNamed)
+		}
+
+		for _, tag := range nbt {
+			//fmt.Println(tag.Name)
+			if (isWildcard && strings.HasPrefix(tag.Name, tagName)) || tag.Name == tagName {
+				targetTag = tag
+				break
+			}
+		}
+
+		if targetTag == nil {
+			fmt.Println("Could not find tag ", tagName)
+			continue
+		}
+		fieldValue := v.FieldByName(field.Name)
+		//Not a builtin
+		if isCustom(field.Type) {
+			if targetTag.Type == nbtCompound {
+				NBTStructScan(targetTag.Data.([]*NBTNamed), fieldValue.Addr().Interface())
+			} else {
+				fmt.Printf("Target is %s not builtin... but target tag is %d not compound\n", field.Type.Name(), targetTag.Type)
+			}
+			continue
+		}
+
+		if field.Type.Kind().String() == "slice" {
+			listTag, ok := targetTag.Data.(NBTNamed)
+			values := targetTag.Data
+			if ok {
+				values = listTag.Data.(NBTList).Values
+				if targetTag.Type != nbtList {
+					fmt.Println("Target is a slice... but target tag is ", targetTag.Type, " not list")
+					continue
+				}
+			}
+			valuesValue := reflect.ValueOf(values)
+			slice := reflect.MakeSlice(fieldValue.Type(), valuesValue.Len(), valuesValue.Len())
+			for i := 0; i < valuesValue.Len(); i++ {
+				elem := valuesValue.Index(i)
+				slice.Index(i).Set(elem)
+			}
+			fieldValue.Set(slice)
+			continue
+		}
+
+		fieldValue.Set(reflect.ValueOf(targetTag.Data))
+	}
 }
