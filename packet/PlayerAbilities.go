@@ -5,7 +5,7 @@ type PlayerAbilities struct {
 }
 
 func (pa *PlayerAbilities) GetPacketId() int {
-	return 0x32
+	return 0x31
 }
 
 /**

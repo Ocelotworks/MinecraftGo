@@ -6,7 +6,7 @@ type EntityHeadLook struct {
 }
 
 func (ehl *EntityHeadLook) GetPacketId() int {
-	return 0x3C
+	return 0x3B
 }
 
 /**

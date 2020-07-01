@@ -5,7 +5,7 @@ type KeepAlive struct {
 }
 
 func (ka *KeepAlive) GetPacketId() int {
-	return 0x21 //Client
+	return 0x20 //Client
 }
 
 /**

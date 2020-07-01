@@ -93,9 +93,17 @@ func (er *EncryptionResponse) Handle(packet []byte, connection *Connection) {
 		return
 	}
 
-	body := make([]byte, response.ContentLength)
+	fmt.Println("Status Code ", response.StatusCode)
 
-	response.Body.Read(body)
+	body := make([]byte, 4096)
+
+	numRead, exception := response.Body.Read(body)
+
+	if exception != nil {
+		fmt.Println("Exception reading body ", exception)
+	}
+
+	body = body[:numRead]
 
 	sessionResponse := SessionResponse{}
 

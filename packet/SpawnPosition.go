@@ -5,7 +5,7 @@ type SpawnPosition struct {
 }
 
 func (sp *SpawnPosition) GetPacketId() int {
-	return 0x4E
+	return 0x42
 }
 
 /**

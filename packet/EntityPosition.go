@@ -9,7 +9,7 @@ type EntityPosition struct {
 }
 
 func (ep *EntityPosition) GetPacketId() int {
-	return 0x29
+	return 0x28
 }
 
 /**

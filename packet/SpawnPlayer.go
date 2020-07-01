@@ -11,7 +11,7 @@ type SpawnPlayer struct {
 }
 
 func (sp *SpawnPlayer) GetPacketId() int {
-	return 0x05
+	return 0x04
 }
 
 /**

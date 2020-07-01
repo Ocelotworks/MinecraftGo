@@ -9,7 +9,7 @@ func (hic *HeldItemChange) GetPacketId() int {
 	if hic.IsServer {
 		return 0x23
 	}
-	return 0x40
+	return 0x3F
 }
 
 /**

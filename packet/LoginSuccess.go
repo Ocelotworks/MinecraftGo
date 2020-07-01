@@ -1,7 +1,7 @@
 package packet
 
 type LoginSuccess struct {
-	UUID     string `proto:"string"`
+	UUID     []byte `proto:"uuid"`
 	Username string `proto:"string"`
 }
 

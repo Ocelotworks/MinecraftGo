@@ -5,7 +5,7 @@ type PlayerMovement struct {
 }
 
 func (pm *PlayerMovement) GetPacketId() int {
-	return 0x14
+	return 0x15
 }
 
 /**

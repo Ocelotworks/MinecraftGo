@@ -6,7 +6,7 @@ type EntityAnimation struct {
 }
 
 func (ea *EntityAnimation) GetPacketId() int {
-	return 0x06
+	return 0x05
 }
 
 /**

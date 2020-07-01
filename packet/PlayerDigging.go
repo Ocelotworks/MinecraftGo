@@ -7,5 +7,5 @@ type PlayerDigging struct {
 }
 
 func (pd *PlayerDigging) GetPacketId() int {
-	return 0x1A
+	return 0x1B
 }

@@ -5,5 +5,5 @@ type Animation struct {
 }
 
 func (a *Animation) GetPacketId() int {
-	return 0x2A
+	return 0x2B
 }

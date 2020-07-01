@@ -31,3 +31,13 @@ func WriteString(input interface{}) []byte {
 	output = append(output, b...)
 	return output
 }
+
+func WriteStringArray(input interface{}) []byte {
+	var b []byte
+	strings := input.([]string)
+	b = WriteVarInt(len(strings))
+	for _, str := range strings {
+		b = append(b, WriteString(str)...)
+	}
+	return b
+}

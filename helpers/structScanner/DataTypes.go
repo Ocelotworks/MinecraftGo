@@ -35,4 +35,5 @@ var dataWriteMap = map[string]func(interface{}) []byte{
 	"uuid":           dataTypes.WriteUUID,
 	"entityMetadata": dataTypes.WriteEntityMetadata,
 	"varIntArray":    dataTypes.WriteVarIntArray,
+	"stringArray":    dataTypes.WriteStringArray,
 }

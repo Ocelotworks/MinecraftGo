@@ -10,7 +10,7 @@ func (pm *PluginMessage) GetPacketId() int {
 	if pm.IsServer {
 		return 0x0B
 	}
-	return 0x19
+	return 0x18
 }
 
 /**

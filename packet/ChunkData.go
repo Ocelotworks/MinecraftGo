@@ -14,7 +14,7 @@ type ChunkData struct {
 }
 
 func (cd *ChunkData) GetPacketId() int {
-	return 0x22
+	return 0x21
 }
 
 /**

@@ -7,7 +7,7 @@ type PlayerRotation struct {
 }
 
 func (pr *PlayerRotation) GetPacketId() int {
-	return 0x13
+	return 0x14
 }
 
 /**

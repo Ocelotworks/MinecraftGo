@@ -5,6 +5,7 @@ import (
 	"compress/zlib"
 	"crypto/cipher"
 	"crypto/rsa"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net"
@@ -58,16 +59,16 @@ var controllers = map[State][]Packet{
 		0x03: &IncomingChatMessage{},
 		0x05: &ClientSettings{},
 		0x0B: &PluginMessage{},
-		0x0F: &KeepAlive{},
-		0x11: &PlayerPosition{},
-		0x12: &PlayerPositionAndRotation{},
-		0x13: &PlayerRotation{},
-		0x14: &PlayerMovement{},
-		0x19: &PlayerAbilities{},
-		0x1A: &PlayerDigging{},
-		0x1B: &EntityAction{},
-		0x23: &HeldItemChange{},
-		0x2A: &Animation{},
+		0x10: &KeepAlive{},
+		0x12: &PlayerPosition{},
+		0x13: &PlayerPositionAndRotation{},
+		0x14: &PlayerRotation{},
+		0x15: &PlayerMovement{},
+		0x1A: &PlayerAbilities{},
+		0x1B: &PlayerDigging{},
+		0x1C: &EntityAction{},
+		0x24: &HeldItemChange{},
+		0x2B: &Animation{},
 	},
 }
 
@@ -196,8 +197,8 @@ func (c *Connection) Handle() {
 
 			packetBuffer := decryptedBuf[cursor:]
 
-			//fmt.Println(">>>INCOMING<<<")
-			//fmt.Println(hex.Dump(packetBuffer))
+			fmt.Println(">>>INCOMING<<<")
+			fmt.Println(hex.Dump(packetBuffer))
 
 			packetStructScanner.StructScan(&packet, packetBuffer)
 
@@ -239,8 +240,8 @@ func (c *Connection) SendPacket(packet *packetType.Packet) error {
 	}
 
 	//if len(payload) < 1024 {
-	//	fmt.Println(">>>OUTGOING<<<")
-	//	fmt.Println(hex.Dump(payload))
+	fmt.Println(">>>OUTGOING<<<")
+	fmt.Println(hex.Dump(payload))
 	//}
 
 	if packetID == 0x34 {

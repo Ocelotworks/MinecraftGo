@@ -8,7 +8,7 @@ type AcknowledgePlayerDigging struct {
 }
 
 func (apd *AcknowledgePlayerDigging) GetPacketId() int {
-	return 0x08
+	return 0x07
 }
 
 /**

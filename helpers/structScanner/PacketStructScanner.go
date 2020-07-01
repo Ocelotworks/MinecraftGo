@@ -1,14 +1,14 @@
 package structScanner
 
 import (
-	"reflect"
 	"fmt"
-	packetType "github.com/Ocelotworks/MinecraftGo/packet"
 	"github.com/Ocelotworks/MinecraftGo/dataTypes"
 	"github.com/Ocelotworks/MinecraftGo/entity"
+	packetType "github.com/Ocelotworks/MinecraftGo/packet"
+	"reflect"
 )
 
-type PacketStructScanner struct {}
+type PacketStructScanner struct{}
 
 func (pss *PacketStructScanner) StructScan(packet *packetType.Packet, buf []byte) {
 	v := reflect.ValueOf(*packet).Elem()
@@ -100,5 +100,3 @@ func (pss *PacketStructScanner) UnmarshalData(input interface{}) []byte {
 
 	return payload
 }
-
-

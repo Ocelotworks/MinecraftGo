@@ -8,7 +8,7 @@ type EntityRotation struct {
 }
 
 func (er *EntityRotation) GetPacketId() int {
-	return 0x2B
+	return 0x2A
 }
 
 /**

@@ -6,5 +6,5 @@ type BlockChange struct {
 }
 
 func (bc *BlockChange) GetPacketId() int {
-	return 0x0C
+	return 0x0B
 }

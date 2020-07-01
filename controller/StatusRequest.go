@@ -45,8 +45,8 @@ func (sr *StatusRequest) Handle(packet []byte, connection *Connection) {
 
 	status := entity.ServerListPingResponse{
 		Version: entity.ServerListPingVersion{
-			Name:     "1.15.2",
-			Protocol: 578,
+			Name:     "1.16.1.",
+			Protocol: 736,
 		},
 		Players: entity.ServerListPingPlayers{
 			Max:    connection.Minecraft.MaxPlayers,

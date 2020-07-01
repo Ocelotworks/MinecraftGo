@@ -11,7 +11,7 @@ type EntityPositionAndRotation struct {
 }
 
 func (epar *EntityPositionAndRotation) GetPacketId() int {
-	return 0x2A
+	return 0x29
 }
 
 /**

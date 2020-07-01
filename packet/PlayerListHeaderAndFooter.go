@@ -6,5 +6,5 @@ type PlayerListHeaderAndFooter struct {
 }
 
 func (plhaf *PlayerListHeaderAndFooter) GetPacketId() int {
-	return 0x54
+	return 0x53
 }

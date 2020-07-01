@@ -7,5 +7,5 @@ type EntityAction struct {
 }
 
 func (ea *EntityAction) GetPacketId() int {
-	return 0x1B
+	return 0x1C
 }

@@ -3,11 +3,11 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/Ocelotworks/MinecraftGo/dataTypes"
 	"io/ioutil"
 	"math"
 	"time"
 
-	"github.com/Ocelotworks/MinecraftGo/dataTypes"
 	"github.com/Ocelotworks/MinecraftGo/entity"
 	packetType "github.com/Ocelotworks/MinecraftGo/packet"
 	"github.com/gofrs/uuid"
@@ -363,7 +363,7 @@ func (mc *Minecraft) StartPlayerJoin(connection *Connection) {
 	}
 
 	returnPacket := packetType.Packet(&packetType.LoginSuccess{
-		UUID:     stringUUID.String(),
+		UUID:     stringUUID.Bytes(),
 		Username: connection.Player.Username,
 	})
 
@@ -371,13 +371,17 @@ func (mc *Minecraft) StartPlayerJoin(connection *Connection) {
 
 	connection.State = PLAY
 
+	dataTypes.NBTWriteCompound()
+
 	joinGame := packetType.Packet(&packetType.JoinGame{
 		EntityID:            connection.Player.EntityID,
 		Gamemode:            1,
+		PreviousGamemode:    1,
+		WorldNames:          []string{"The Nether", "The Overworld", "The End"},
+		DimensionCodec:      dimensionCodec,
 		Dimension:           0,
 		HashedSeed:          71495747907944700,
 		MaxPlayers:          byte(connection.Minecraft.MaxPlayers),
-		LevelType:           "default",
 		ViewDistance:        32,
 		ReducedDebugInfo:    false,
 		EnableRespawnScreen: true,

@@ -6,5 +6,5 @@ type UpdateViewPosition struct {
 }
 
 func (uvp *UpdateViewPosition) GetPacketId() int {
-	return 0x41
+	return 0x40
 }

@@ -6,7 +6,7 @@ type ServerDifficulty struct {
 }
 
 func (sd *ServerDifficulty) GetPacketId() int {
-	return 0x0E
+	return 0x0D
 }
 
 /**

@@ -11,7 +11,7 @@ type EntityTeleport struct {
 }
 
 func (et *EntityTeleport) GetPacketId() int {
-	return 0x57
+	return 0x56
 }
 
 /**

@@ -21,15 +21,15 @@ type PlayerInfoUpdatePing struct {
 }
 
 func (piap *PlayerInfoAddPlayer) GetPacketId() int {
-	return 0x34
+	return 0x33
 }
 
 func (pirp *PlayerInfoRemovePlayer) GetPacketId() int {
-	return 0x34
+	return 0x33
 }
 
 func (piup *PlayerInfoUpdatePing) GetPacketId() int {
-	return 0x34
+	return 0x33
 }
 
 /**

@@ -6,5 +6,5 @@ type TimeUpdate struct {
 }
 
 func (stu *TimeUpdate) GetPacketId() int {
-	return 0x4F
+	return 0x4E
 }

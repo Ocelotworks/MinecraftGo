@@ -6,7 +6,7 @@ type DestroyEntity struct {
 }
 
 func (de *DestroyEntity) GetPacketId() int {
-	return 0x38
+	return 0x37
 }
 
 /**

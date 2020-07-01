@@ -10,5 +10,5 @@ type PlayerPositionAndRotation struct {
 }
 
 func (ppar *PlayerPositionAndRotation) GetPacketId() int {
-	return 0x12
+	return 0x13
 }
