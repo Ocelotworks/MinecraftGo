@@ -17,6 +17,7 @@ var dataReadMap = map[string]func(buf []byte) (interface{}, int){
 	"double":          dataTypes.ReadDouble,
 	"uuid":            dataTypes.ReadUUID,
 	"varIntByteArray": dataTypes.ReadVarIntByteArray,
+	"bitset":          dataTypes.ReadBitSet,
 }
 
 var dataWriteMap = map[string]func(interface{}) []byte{
@@ -36,4 +37,5 @@ var dataWriteMap = map[string]func(interface{}) []byte{
 	"entityMetadata": dataTypes.WriteEntityMetadata,
 	"varIntArray":    dataTypes.WriteVarIntArray,
 	"stringArray":    dataTypes.WriteStringArray,
+	"bitset":         dataTypes.WriteBitSet,
 }
