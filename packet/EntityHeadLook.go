@@ -1,12 +1,14 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type EntityHeadLook struct {
 	EntityID int  `proto:"varInt"`
 	Yaw      byte `proto:"unsignedByte"`
 }
 
 func (ehl *EntityHeadLook) GetPacketId() int {
-	return 0x3B
+	return constants.CBEntityHeadLook
 }
 
 /**

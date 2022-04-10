@@ -1,5 +1,7 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type PlayerPositionAndRotation struct {
 	X        float64 `proto:"double"`
 	FeetY    float64 `proto:"double"`
@@ -10,5 +12,5 @@ type PlayerPositionAndRotation struct {
 }
 
 func (ppar *PlayerPositionAndRotation) GetPacketId() int {
-	return 0x13
+	return constants.SBPlayerPositionAndRotation
 }

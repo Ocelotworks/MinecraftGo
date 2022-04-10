@@ -1,5 +1,7 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type HeldItemChange struct {
 	Slot     byte `proto:"unsignedByte"`
 	IsServer bool
@@ -7,9 +9,9 @@ type HeldItemChange struct {
 
 func (hic *HeldItemChange) GetPacketId() int {
 	if hic.IsServer {
-		return 0x23
+		return constants.CBHeldItemChange
 	}
-	return 0x3F
+	return constants.SBHeldItemChange
 }
 
 /**

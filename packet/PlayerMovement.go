@@ -1,11 +1,13 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type PlayerMovement struct {
 	OnGround bool `proto:"bool"`
 }
 
 func (pm *PlayerMovement) GetPacketId() int {
-	return 0x15
+	return constants.SBPlayerMovement
 }
 
 /**

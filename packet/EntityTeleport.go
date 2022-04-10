@@ -1,5 +1,7 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type EntityTeleport struct {
 	EntityID int     `proto:"varInt"`
 	X        float64 `proto:"double"`
@@ -11,7 +13,7 @@ type EntityTeleport struct {
 }
 
 func (et *EntityTeleport) GetPacketId() int {
-	return 0x56
+	return constants.CBEntityTeleport
 }
 
 /**

@@ -1,5 +1,7 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type PluginMessage struct {
 	IsServer   bool
 	Identifier string `proto:"string"`
@@ -8,9 +10,9 @@ type PluginMessage struct {
 
 func (pm *PluginMessage) GetPacketId() int {
 	if pm.IsServer {
-		return 0x0B
+		return constants.CBPluginMessage
 	}
-	return 0x18
+	return constants.SBPluginMessage
 }
 
 /**

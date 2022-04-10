@@ -1,12 +1,14 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type DestroyEntity struct {
 	Count     int   `proto:"varInt"`
 	EntityIDs []int `proto:"varIntArray"`
 }
 
 func (de *DestroyEntity) GetPacketId() int {
-	return 0x37
+	return constants.CBDestroyEntities
 }
 
 /**

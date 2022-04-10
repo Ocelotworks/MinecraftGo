@@ -1,5 +1,7 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type PlayerDigging struct {
 	Status   int   `proto:"varInt"`
 	Location int64 `proto:"long"`
@@ -7,5 +9,5 @@ type PlayerDigging struct {
 }
 
 func (pd *PlayerDigging) GetPacketId() int {
-	return 0x1B
+	return constants.SBPlayerDigging
 }

@@ -1,5 +1,7 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type EntityRotation struct {
 	EntityID int  `proto:"varInt"`
 	Yaw      byte `proto:"unsignedByte"`
@@ -8,7 +10,7 @@ type EntityRotation struct {
 }
 
 func (er *EntityRotation) GetPacketId() int {
-	return 0x2A
+	return constants.CBEntityRotation
 }
 
 /**

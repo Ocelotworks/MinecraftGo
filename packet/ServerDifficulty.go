@@ -1,12 +1,14 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type ServerDifficulty struct {
 	Difficulty       byte `proto:"unsignedByte"`
 	DifficultyLocked bool `proto:"bool"`
 }
 
 func (sd *ServerDifficulty) GetPacketId() int {
-	return 0x0D
+	return constants.CBServerDifficulty
 }
 
 /**

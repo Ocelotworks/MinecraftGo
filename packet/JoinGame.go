@@ -1,5 +1,7 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type JoinGame struct {
 	EntityID            int      `proto:"int"`
 	Gamemode            byte     `proto:"unsignedByte"`
@@ -17,7 +19,7 @@ type JoinGame struct {
 }
 
 func (ls *JoinGame) GetPacketId() int {
-	return 0x25
+	return constants.CBJoinGame
 }
 
 /**

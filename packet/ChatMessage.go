@@ -1,5 +1,7 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type ChatMessage struct {
 	ChatData string `proto:"string"`
 	Position byte   `proto:"unsignedByte"`
@@ -7,7 +9,7 @@ type ChatMessage struct {
 }
 
 func (cd *ChatMessage) GetPacketId() int {
-	return 0x0E
+	return constants.CBChatMessage
 }
 
 /**

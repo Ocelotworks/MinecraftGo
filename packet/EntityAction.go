@@ -1,5 +1,7 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type EntityAction struct {
 	EntityID  int `proto:"varInt"`
 	ActionID  int `proto:"varInt"`
@@ -7,5 +9,5 @@ type EntityAction struct {
 }
 
 func (ea *EntityAction) GetPacketId() int {
-	return 0x1C
+	return constants.SBEntityAction
 }

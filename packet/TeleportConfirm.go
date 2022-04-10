@@ -1,11 +1,13 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type TeleportConfirm struct {
 	TeleportID int `proto:"varInt"`
 }
 
 func (tc *TeleportConfirm) GetPacketId() int {
-	return 0x00
+	return constants.SBTeleportConfirm
 }
 
 /**

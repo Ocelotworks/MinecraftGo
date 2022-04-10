@@ -1,5 +1,7 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type SpawnPlayer struct {
 	EntityID int     `proto:"varInt"`
 	UUID     []byte  `proto:"uuid"`
@@ -11,7 +13,7 @@ type SpawnPlayer struct {
 }
 
 func (sp *SpawnPlayer) GetPacketId() int {
-	return 0x04
+	return constants.CBSpawnPlayer
 }
 
 /**

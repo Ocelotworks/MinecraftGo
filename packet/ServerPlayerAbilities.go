@@ -1,9 +1,11 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type ServerPlayerAbilities struct {
 	Flags byte `proto:"unsignedByte"`
 }
 
 func (spb *ServerPlayerAbilities) GetPacketId() int {
-	return 0x1A
+	return constants.CBPlayerAbilities
 }

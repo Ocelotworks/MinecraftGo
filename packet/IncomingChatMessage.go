@@ -1,11 +1,13 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type IncomingChatMessage struct {
 	Message string `proto:"string"`
 }
 
 func (icm *IncomingChatMessage) GetPacketId() int {
-	return 0x03
+	return constants.SBChatMessage
 }
 
 /**

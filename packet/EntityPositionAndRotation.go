@@ -1,5 +1,7 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type EntityPositionAndRotation struct {
 	EntityID int   `proto:"varInt"`
 	DeltaX   int16 `proto:"short"`
@@ -11,7 +13,7 @@ type EntityPositionAndRotation struct {
 }
 
 func (epar *EntityPositionAndRotation) GetPacketId() int {
-	return 0x29
+	return constants.CBEntityPositionAndRotation
 }
 
 /**

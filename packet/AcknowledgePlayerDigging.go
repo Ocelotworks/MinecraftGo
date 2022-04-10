@@ -1,5 +1,7 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type AcknowledgePlayerDigging struct {
 	Location   int64 `proto:"long"`
 	Block      int   `proto:"varInt"`
@@ -8,7 +10,7 @@ type AcknowledgePlayerDigging struct {
 }
 
 func (apd *AcknowledgePlayerDigging) GetPacketId() int {
-	return 0x07
+	return constants.CBAcknowledgePlayerDigging
 }
 
 /**

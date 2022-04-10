@@ -1,11 +1,13 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 //TODO
 type PlayerAbilities struct {
 }
 
 func (pa *PlayerAbilities) GetPacketId() int {
-	return 0x31
+	return constants.CBPlayerAbilities
 }
 
 /**

@@ -1,6 +1,9 @@
 package packet
 
-import "github.com/Ocelotworks/MinecraftGo/dataTypes"
+import (
+	"github.com/Ocelotworks/MinecraftGo/constants"
+	"github.com/Ocelotworks/MinecraftGo/dataTypes"
+)
 
 type EntityMetadata struct {
 	EntityID int                `proto:"varInt"`
@@ -8,7 +11,7 @@ type EntityMetadata struct {
 }
 
 func (em *EntityMetadata) GetPacketId() int {
-	return 0x44
+	return constants.CBEntityMetadata
 }
 
 /**

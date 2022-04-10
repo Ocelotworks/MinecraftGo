@@ -1,11 +1,13 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type SpawnPosition struct {
 	Location int64 `proto:"long"`
 }
 
 func (sp *SpawnPosition) GetPacketId() int {
-	return 0x42
+	return constants.CBSpawnPosition
 }
 
 /**

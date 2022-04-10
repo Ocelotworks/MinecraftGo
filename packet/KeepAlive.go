@@ -1,11 +1,13 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type KeepAlive struct {
 	ID int64 `proto:"long"`
 }
 
 func (ka *KeepAlive) GetPacketId() int {
-	return 0x20 //Client
+	return constants.CBKeepAlive //Client
 }
 
 /**

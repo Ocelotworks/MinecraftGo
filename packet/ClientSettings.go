@@ -1,5 +1,7 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type ClientSettings struct {
 	Locale             string `proto:"string"`
 	ViewDistance       byte   `proto:"unsignedByte"`
@@ -10,7 +12,7 @@ type ClientSettings struct {
 }
 
 func (cs *ClientSettings) GetPacketId() int {
-	return 0x04
+	return constants.SBClientSettings
 }
 
 /**

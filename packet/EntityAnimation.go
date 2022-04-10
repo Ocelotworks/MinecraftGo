@@ -1,12 +1,14 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type EntityAnimation struct {
 	EntityID  int  `proto:"varInt"`
 	Animation byte `proto:"unsignedByte"`
 }
 
 func (ea *EntityAnimation) GetPacketId() int {
-	return 0x05
+	return constants.CBEntityAnimation
 }
 
 /**

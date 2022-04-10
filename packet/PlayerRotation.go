@@ -1,5 +1,7 @@
 package packet
 
+import "github.com/Ocelotworks/MinecraftGo/constants"
+
 type PlayerRotation struct {
 	Yaw      float32 `proto:"float"`
 	Pitch    float32 `proto:"float"`
@@ -7,7 +9,7 @@ type PlayerRotation struct {
 }
 
 func (pr *PlayerRotation) GetPacketId() int {
-	return 0x14
+	return constants.SBPlayerRotation
 }
 
 /**

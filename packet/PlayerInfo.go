@@ -1,6 +1,9 @@
 package packet
 
-import "github.com/Ocelotworks/MinecraftGo/entity"
+import (
+	"github.com/Ocelotworks/MinecraftGo/constants"
+	"github.com/Ocelotworks/MinecraftGo/entity"
+)
 
 type PlayerInfoAddPlayer struct {
 	Action  int             `proto:"varInt"`
@@ -21,15 +24,15 @@ type PlayerInfoUpdatePing struct {
 }
 
 func (piap *PlayerInfoAddPlayer) GetPacketId() int {
-	return 0x33
+	return constants.CBPlayerInfo
 }
 
 func (pirp *PlayerInfoRemovePlayer) GetPacketId() int {
-	return 0x33
+	return constants.CBPlayerInfo
 }
 
 func (piup *PlayerInfoUpdatePing) GetPacketId() int {
-	return 0x33
+	return constants.CBPlayerInfo
 }
 
 /**
