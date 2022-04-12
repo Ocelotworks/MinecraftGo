@@ -3,9 +3,7 @@ package dataTypes
 import "encoding/binary"
 
 func ReadInt(buf []byte) (interface{}, int) {
-	slice := buf[:4]
-
-	return int(binary.BigEndian.Uint32(slice)), 4
+	return int(binary.BigEndian.Uint32(buf[:4])), 4
 }
 
 func WriteInt(input interface{}) []byte {
@@ -16,9 +14,21 @@ func WriteInt(input interface{}) []byte {
 
 func WriteIntArray(input interface{}) []byte {
 	arr := input.([]int)
-	output := make([]byte, 0)
+	output := WriteInt(len(arr))
 	for _, val := range arr {
 		output = append(output, WriteInt(val)...)
 	}
 	return output
+}
+
+func ReadIntArray(buf []byte) (interface{}, int) {
+	length, cursor := ReadInt(buf)
+	arr := make([]int, length.(int))
+	for i := 0; i < length.(int); i++ {
+		arrayItem, cursorDelta := ReadInt(buf[cursor:])
+		cursor += cursorDelta
+		arr[i] = arrayItem.(int)
+	}
+
+	return arr, cursor
 }

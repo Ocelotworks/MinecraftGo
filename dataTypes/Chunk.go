@@ -86,14 +86,14 @@ func ReadChunk(buf []byte, blockData map[string]entity.BlockData) (interface{}, 
 
 	var out bytes.Buffer
 	io.Copy(&out, read)
-	decompressedBytes := out.Bytes()
+	// decompressedBytes := out.Bytes()
 
 	//chunk.Raw = decompressedBytes
-	chunkData, length := ReadNBT(decompressedBytes)
+	//chunkData := nbt.ReadNBT(decompressedBytes)
 	cursor += length
 
 	regionChunk := RegionChunk{}
-	NBTStructScan(chunkData, &regionChunk)
+	// structScanner.NBTStructScan(&regionChunk, &chunkData)
 
 	if regionChunk.Level.Biomes == nil {
 		fmt.Println("No biomes")

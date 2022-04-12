@@ -96,16 +96,25 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 			continue
 		}
 		chunkData := packetType.Packet(&packetType.ChunkData{
-			X:                i % 32,
-			Z:                i / 32,
-			FullChunk:        true,
-			PrimaryBitMask:   int(math.Pow(2, float64(len(chunk.Sections))) - 1),
+			X: i % 32,
+			Z: i / 32,
+			//FullChunk:        true,
+			//PrimaryBitMask:   int(math.Pow(2, float64(len(chunk.Sections))) - 1),
 			HeightMap:        heightMaps,
-			Biomes:           randomBiomes,
 			DataSize:         len(chunkRaw),
 			Data:             chunkRaw,
 			BlockEntityCount: 0,
 			BlockEntities:    make([]byte, 0),
+			//Biomes:           randomBiomes,
+			TrustEdges:           true,
+			SkyLightMask:         []int64{},
+			BlockLightMask:       []int64{},
+			EmptySkyLightMask:    []int64{},
+			EmptyBlockLightMask:  []int64{},
+			SkyLightArrayCount:   0,
+			SkyLightArrays:       []byte{},
+			BlockLightArrayCount: 0,
+			BlockLightArrays:     []byte{},
 		})
 
 		connection.SendPacket(&chunkData)

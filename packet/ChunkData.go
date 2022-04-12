@@ -11,7 +11,7 @@ type ChunkData struct {
 	BlockEntityCount     int     `proto:"varInt"`
 	BlockEntities        []byte  `proto:"raw"`
 	TrustEdges           bool    `proto:"bool"`
-	SkyLightMask         []byte  `proto:"raw"`
+	SkyLightMask         []int64 `proto:"bitset"`
 	BlockLightMask       []int64 `proto:"bitset"`
 	EmptySkyLightMask    []int64 `proto:"bitset"`
 	EmptyBlockLightMask  []int64 `proto:"bitset"`

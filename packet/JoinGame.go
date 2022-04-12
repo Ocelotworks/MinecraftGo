@@ -4,11 +4,13 @@ import "github.com/Ocelotworks/MinecraftGo/constants"
 
 type JoinGame struct {
 	EntityID            int      `proto:"int"`
+	IsHardcore          bool     `proto:"bool"`
 	Gamemode            byte     `proto:"unsignedByte"`
 	PreviousGamemode    byte     `proto:"unsignedByte"`
 	WorldNames          []string `proto:"stringArray"`
 	DimensionCodec      []byte   `proto:"raw"`
-	Dimension           int      `proto:"int"`
+	Dimension           []byte   `proto:"raw"`
+	DimensionName       string   `proto:"string"`
 	HashedSeed          int64    `proto:"long"`
 	MaxPlayers          byte     `proto:"unsignedByte"`
 	ViewDistance        int      `proto:"varInt"`

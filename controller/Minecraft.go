@@ -371,20 +371,24 @@ func (mc *Minecraft) StartPlayerJoin(connection *Connection) {
 
 	connection.State = PLAY
 
-	dataTypes.NBTWriteCompound()
+	//	dataTypes.NBTWriteCompound()
 
 	joinGame := packetType.Packet(&packetType.JoinGame{
 		EntityID:            connection.Player.EntityID,
+		IsHardcore:          false,
 		Gamemode:            1,
 		PreviousGamemode:    1,
-		WorldNames:          []string{"The Nether", "The Overworld", "The End"},
-		DimensionCodec:      dimensionCodec,
-		Dimension:           0,
+		WorldNames:          []string{"nether", "overworld", "end"},
+		DimensionCodec:      []byte{},
+		Dimension:           []byte{},
+		DimensionName:       "overworld",
 		HashedSeed:          71495747907944700,
 		MaxPlayers:          byte(connection.Minecraft.MaxPlayers),
 		ViewDistance:        32,
 		ReducedDebugInfo:    false,
 		EnableRespawnScreen: true,
+		IsDebug:             false,
+		IsFlat:              false,
 	})
 
 	connection.SendPacket(&joinGame)

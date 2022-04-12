@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/Ocelotworks/MinecraftGo/constants"
 
 	"github.com/Ocelotworks/MinecraftGo/entity"
 	packetType "github.com/Ocelotworks/MinecraftGo/packet"
@@ -45,8 +46,8 @@ func (sr *StatusRequest) Handle(packet []byte, connection *Connection) {
 
 	status := entity.ServerListPingResponse{
 		Version: entity.ServerListPingVersion{
-			Name:     "1.16.1.",
-			Protocol: 736,
+			Name:     constants.GameVersion,
+			Protocol: constants.ProtocolVersion,
 		},
 		Players: entity.ServerListPingPlayers{
 			Max:    connection.Minecraft.MaxPlayers,

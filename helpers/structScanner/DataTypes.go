@@ -1,18 +1,20 @@
 package structScanner
 
-import "github.com/Ocelotworks/MinecraftGo/dataTypes"
+import (
+	"github.com/Ocelotworks/MinecraftGo/dataTypes"
+)
 
 var dataReadMap = map[string]func(buf []byte) (interface{}, int){
-	"long":          dataTypes.ReadLong,
-	"varInt":        dataTypes.ReadVarInt,
-	"string":        dataTypes.ReadString,
-	"raw":           dataTypes.ReadRaw,
-	"short":         dataTypes.ReadShort,
-	"unsignedShort": dataTypes.ReadUnsignedShort,
-	"bool":          dataTypes.ReadBoolean,
-	"unsignedByte":  dataTypes.ReadUnsignedByte,
-	"int":           dataTypes.ReadInt,
-	//"intArray":		 dataTypes.ReadIntArray,
+	"long":            dataTypes.ReadLong,
+	"varInt":          dataTypes.ReadVarInt,
+	"string":          dataTypes.ReadString,
+	"raw":             dataTypes.ReadRaw,
+	"short":           dataTypes.ReadShort,
+	"unsignedShort":   dataTypes.ReadUnsignedShort,
+	"bool":            dataTypes.ReadBoolean,
+	"unsignedByte":    dataTypes.ReadUnsignedByte,
+	"int":             dataTypes.ReadInt,
+	"intArray":        dataTypes.ReadIntArray,
 	"float":           dataTypes.ReadFloat,
 	"double":          dataTypes.ReadDouble,
 	"uuid":            dataTypes.ReadUUID,
@@ -20,7 +22,7 @@ var dataReadMap = map[string]func(buf []byte) (interface{}, int){
 	"bitset":          dataTypes.ReadBitSet,
 }
 
-var dataWriteMap = map[string]func(interface{}) []byte{
+var dataWriteMap = map[string]func(any) []byte{
 	"long":           dataTypes.WriteLong,
 	"varInt":         dataTypes.WriteVarInt,
 	"string":         dataTypes.WriteString,
