@@ -2,6 +2,7 @@ package structScanner
 
 import (
 	"github.com/Ocelotworks/MinecraftGo/dataTypes"
+	"github.com/Ocelotworks/MinecraftGo/dataTypes/nbt"
 )
 
 var dataReadMap = map[string]func(buf []byte) (interface{}, int){
@@ -20,6 +21,7 @@ var dataReadMap = map[string]func(buf []byte) (interface{}, int){
 	"uuid":            dataTypes.ReadUUID,
 	"varIntByteArray": dataTypes.ReadVarIntByteArray,
 	"bitset":          dataTypes.ReadBitSet,
+	"nbt":             ReadNBT,
 }
 
 var dataWriteMap = map[string]func(any) []byte{
@@ -40,4 +42,16 @@ var dataWriteMap = map[string]func(any) []byte{
 	"varIntArray":    dataTypes.WriteVarIntArray,
 	"stringArray":    dataTypes.WriteStringArray,
 	"bitset":         dataTypes.WriteBitSet,
+	"nbt":            WriteNBT,
+}
+
+// Import cycle moment
+
+func ReadNBT(buf []byte) (interface{}, int) {
+	return nbt.ReadNBT(buf)
+}
+
+func WriteNBT(compoundStruct interface{}) []byte {
+	output := NBTMarshal(compoundStruct)
+	return output[:len(output)-1]
 }

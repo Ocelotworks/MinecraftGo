@@ -1,6 +1,11 @@
 package structScanner
 
 import (
+	"bytes"
+	"compress/gzip"
+	"encoding/json"
+	"fmt"
+	"github.com/Ocelotworks/MinecraftGo/dataTypes"
 	"github.com/Ocelotworks/MinecraftGo/dataTypes/nbt"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
@@ -17,7 +22,7 @@ func TestNBTStructScanner(t *testing.T) {
 	inData, exception := ioutil.ReadFile("../../data/nbt-test/hello_world.nbt")
 	assert.Nil(t, exception)
 
-	compound := nbt.ReadNBT(inData)
+	compound, _ := nbt.ReadNBT(inData)
 
 	helloStruct := helloWorldStruct{}
 
@@ -72,11 +77,32 @@ func TestNBTMarshalList(t *testing.T) {
 
 	output := NBTMarshal(&listTestVal)
 
-	rereadNbt := nbt.ReadNBT(output)
+	rereadNbt, _ := nbt.ReadNBT(output)
 
 	listTestReread := listTest{}
 
 	NBTStructScan(&listTestReread, &rereadNbt)
 
 	assert.Equal(t, listTestVal, listTestReread)
+}
+
+func TestLoadCodecNBT(t *testing.T) {
+	inData, exception := ioutil.ReadFile("../../data/codec.nbt")
+	assert.Nil(t, exception)
+
+	compressed := bytes.NewReader(inData)
+	zr, exception := gzip.NewReader(compressed)
+	assert.Nil(t, exception)
+
+	uncompressed, exception := ioutil.ReadAll(zr)
+	assert.Nil(t, exception)
+
+	compound, _ := nbt.ReadNBT(uncompressed)
+
+	codec := dataTypes.CodecOuterCompound{}
+
+	NBTStructScan(&codec, &compound)
+
+	data, _ := json.Marshal(codec)
+	fmt.Println(string(data))
 }

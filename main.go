@@ -42,7 +42,7 @@ func main() {
 	//
 	//return
 
-	listener, exception := net.Listen("tcp", ":25565")
+	listener, exception := net.Listen("tcp", ":25566")
 
 	if exception != nil {
 		fmt.Println(exception)
@@ -61,7 +61,7 @@ func main() {
 
 	minecraft = controller.CreateMinecraft()
 
-	fmt.Println("Listening on port 25565")
+	fmt.Println("Listening on port 25566")
 
 	for {
 		connection, exception := listener.Accept()

@@ -48,6 +48,8 @@ func IDFromName(name string) byte {
 
 func IDFromType(typeName string) byte {
 	switch typeName {
+	case "uint8":
+		fallthrough
 	case "byte":
 		return 1
 	case "int16":
@@ -116,8 +118,7 @@ func NewValue(id byte) NBTValue {
 	return nil
 }
 
-func ReadNBT(data []byte) Compound {
+func ReadNBT(data []byte) (Compound, int) {
 	outerCompound := Compound{}
-	outerCompound.Read(data)
-	return outerCompound
+	return outerCompound, outerCompound.Read(data)
 }

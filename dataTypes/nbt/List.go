@@ -8,6 +8,9 @@ type List struct {
 }
 
 func NewList(values []NBTValue) List {
+	if len(values) == 0 {
+		return List{Data: values, Type: 10} // Compound maybe?
+	}
 	return List{Data: values, Type: byte(values[0].GetType())}
 }
 

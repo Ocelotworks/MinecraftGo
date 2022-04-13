@@ -87,7 +87,12 @@ func (pss *PacketStructScanner) UnmarshalData(input interface{}) []byte {
 				continue
 			}
 
-			segment = dataWriteMap[tag](v.FieldByName(field.Name).Interface())
+			if tag == "nbt" {
+				segment = dataWriteMap[tag](v.FieldByName(field.Name).Addr().Interface())
+			} else {
+				segment = dataWriteMap[tag](v.FieldByName(field.Name).Interface())
+			}
+
 		}
 		//if len(segment) < 100 {
 		//	fmt.Printf("Field %s type %s coded as value %v (Between  %d - %d)\n", field.Name, tag, val, len(payload), len(payload)+len(segment))

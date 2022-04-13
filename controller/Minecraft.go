@@ -371,17 +371,98 @@ func (mc *Minecraft) StartPlayerJoin(connection *Connection) {
 
 	connection.State = PLAY
 
-	//	dataTypes.NBTWriteCompound()
+	//inData, exception := ioutil.ReadFile("data/codec.nbt")
+	//
+	//compressed := bytes.NewReader(inData)
+	//zr, exception := gzip.NewReader(compressed)
+	//
+	//if exception != nil {
+	//    fmt.Println(exception)
+	//}
+	//
+	//uncompressed, exception := ioutil.ReadAll(zr)
+	//
+	//if exception != nil {
+	//    fmt.Println(exception)
+	//}
+	//
+	//compound, _ := nbt.ReadNBT(uncompressed)
+	//
+	//codec := dataTypes.CodecOuterCompound{}
+	//
+	//structScanner.NBTStructScan(&codec, &compound)
 
 	joinGame := packetType.Packet(&packetType.JoinGame{
-		EntityID:            connection.Player.EntityID,
-		IsHardcore:          false,
-		Gamemode:            1,
-		PreviousGamemode:    1,
-		WorldNames:          []string{"nether", "overworld", "end"},
-		DimensionCodec:      []byte{},
-		Dimension:           []byte{},
-		DimensionName:       "overworld",
+		EntityID:         connection.Player.EntityID,
+		IsHardcore:       false,
+		Gamemode:         1,
+		PreviousGamemode: 1,
+		WorldNames:       []string{"minecraft:overworld"},
+		DimensionCodec: dataTypes.DimensionCodec{
+			DimensionType: dataTypes.DimensionTypeRegistry{
+				Type: "minecraft:dimension_type",
+				Value: []dataTypes.DimensionTypeRegistryEntry{{
+					Name: "minecraft:overworld",
+					Id:   0,
+					Element: dataTypes.DimensionType{
+						PiglinSafe:         0,
+						Natural:            1,
+						AmbientLight:       0,
+						Infiniburn:         "#minecraft:infiniburn_overworld",
+						RespawnAnchorWorks: 1,
+						HasSkylight:        1,
+						BedWorks:           1,
+						Effects:            "minecraft:overworld",
+						HasRaids:           1,
+						MinY:               -64,
+						Height:             384,
+						LogicalHeight:      256,
+						CoordinateScale:    1,
+						Ultrawarm:          0,
+						HasCeiling:         0,
+					},
+				}},
+			},
+			BiomeRegistry: dataTypes.BiomeRegistry{
+				Type: "minecraft:worldgen/biome",
+				Value: []dataTypes.BiomeRegistryEntry{{
+					Name: "minecraft:plains",
+					Id:   0,
+					Element: dataTypes.Biome{
+						Precipitation: "rain",
+						Depth:         1,
+						Temperature:   1,
+						Scale:         1,
+						Downfall:      0.4,
+						Category:      "plains",
+						Effects: dataTypes.BiomeEffect{
+							SkyColor:      7907327,
+							WaterFogColor: 329011,
+							FogColor:      12638463,
+							WaterColor:    4159204,
+						},
+					},
+				}},
+			},
+		},
+		Dimension: dataTypes.DimensionType{
+			PiglinSafe:         0,
+			Natural:            1,
+			AmbientLight:       1,
+			Infiniburn:         "",
+			RespawnAnchorWorks: 1,
+			HasSkylight:        1,
+			BedWorks:           1,
+			Effects:            "minecraft:overworld",
+			HasRaids:           1,
+			MinY:               0,
+			Height:             256,
+			LogicalHeight:      256,
+			CoordinateScale:    1,
+			Ultrawarm:          0,
+			HasCeiling:         0,
+		},
+		DimensionName:       "minecraft:overworld",
 		HashedSeed:          71495747907944700,
 		MaxPlayers:          byte(connection.Minecraft.MaxPlayers),
 		ViewDistance:        32,

@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/Ocelotworks/MinecraftGo/dataTypes"
@@ -53,24 +52,6 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 		return
 	}
 
-	heightMaps := dataTypes.NBTWrite(dataTypes.NBTNamed{
-		Type: 10,
-		Name: "",
-		Data: []interface{}{
-			dataTypes.NBTNamed{
-				Name: "MOTION_BLOCKING",
-				Data: randomHeightMap,
-				Type: 12,
-			},
-		},
-	})
-
-	nbtRead, _ := dataTypes.NBTRead(heightMaps, 0)
-
-	fmt.Println(dataTypes.NBTToString(nbtRead, 0))
-
-	fmt.Println(hex.Dump(heightMaps))
-
 	inData, exception := ioutil.ReadFile("data/worlds/world/region/r.0.0.mca") //ioutil.ReadFile("C:\\Users\\Peter\\AppData\\Roaming\\.minecraft\\saves\\MCGO Flat Test 2\\region\\r.0.0.mca")
 
 	if exception != nil {
@@ -98,14 +79,13 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 		chunkData := packetType.Packet(&packetType.ChunkData{
 			X: i % 32,
 			Z: i / 32,
-			//FullChunk:        true,
-			//PrimaryBitMask:   int(math.Pow(2, float64(len(chunk.Sections))) - 1),
-			HeightMap:        heightMaps,
-			DataSize:         len(chunkRaw),
-			Data:             chunkRaw,
-			BlockEntityCount: 0,
-			BlockEntities:    make([]byte, 0),
-			//Biomes:           randomBiomes,
+			HeightMap: packetType.HeightMap{
+				MotionBlocking: randomHeightMap,
+			},
+			DataSize:             len(chunkRaw),
+			Data:                 chunkRaw,
+			BlockEntityCount:     0,
+			BlockEntities:        make([]byte, 0),
 			TrustEdges:           true,
 			SkyLightMask:         []int64{},
 			BlockLightMask:       []int64{},
