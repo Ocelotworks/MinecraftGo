@@ -2,8 +2,6 @@ package nbt
 
 import (
 	"encoding/binary"
-	"encoding/hex"
-	"fmt"
 )
 
 type IntArray struct {
@@ -46,7 +44,7 @@ func (i *IntArray) Write() []byte {
 		binary.BigEndian.PutUint32(valueBytes, uint32(value))
 		output = append(output, valueBytes...)
 	}
-	fmt.Println(hex.Dump(output))
+	// fmt.Println(hex.Dump(output))
 
 	return output
 }

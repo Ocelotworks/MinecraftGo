@@ -55,7 +55,7 @@ func TestLoadBigNbt(t *testing.T) {
 	assert.Equal(t, int16(32767), level.Data["shortTest"].GetValue())
 
 	// Can't compare the contents as map order is not
-	assert.Len(t, compound.Write()[:len(uncompressed)], len(uncompressed))
+	assert.Len(t, compound.Write(), len(uncompressed)+1)
 }
 
 func TestLoadMapNBT(t *testing.T) {

@@ -5,8 +5,8 @@ import (
 	"compress/zlib"
 	"crypto/cipher"
 	"crypto/rsa"
-	"encoding/hex"
 	"fmt"
+	"github.com/Ocelotworks/MinecraftGo/constants"
 	"io"
 	"net"
 	"time"
@@ -55,20 +55,20 @@ var controllers = map[State][]Packet{
 		0x01: &EncryptionResponse{},
 	},
 	PLAY: {
-		0x00: &TeleportConfirm{},
-		0x03: &IncomingChatMessage{},
-		0x05: &ClientSettings{},
-		0x0B: &PluginMessage{},
-		0x10: &KeepAlive{},
-		0x12: &PlayerPosition{},
-		0x13: &PlayerPositionAndRotation{},
-		0x14: &PlayerRotation{},
-		0x15: &PlayerMovement{},
-		0x1A: &PlayerAbilities{},
-		0x1B: &PlayerDigging{},
-		0x1C: &EntityAction{},
-		0x24: &HeldItemChange{},
-		0x2B: &Animation{},
+		constants.SBTeleportConfirm:           &TeleportConfirm{},
+		constants.SBChatMessage:               &IncomingChatMessage{},
+		constants.SBClientSettings:            &ClientSettings{},
+		constants.SBPluginMessage:             &PluginMessage{},
+		constants.SBKeepAlive:                 &KeepAlive{},
+		constants.SBPlayerPosition:            &PlayerPosition{},
+		constants.SBPlayerPositionAndRotation: &PlayerPositionAndRotation{},
+		constants.SBPlayerRotation:            &PlayerRotation{},
+		constants.SBPlayerMovement:            &PlayerMovement{},
+		constants.SBPlayerAbilities:           &PlayerAbilities{},
+		constants.SBPlayerDigging:             &PlayerDigging{},
+		constants.SBEntityAction:              &EntityAction{},
+		constants.SBHeldItemChange:            &HeldItemChange{},
+		constants.SBAnimation:                 &Animation{},
 	},
 }
 
@@ -197,8 +197,8 @@ func (c *Connection) Handle() {
 
 			packetBuffer := decryptedBuf[cursor:]
 
-			fmt.Println(">>>INCOMING<<<")
-			fmt.Println(hex.Dump(packetBuffer))
+			//fmt.Println(">>>INCOMING<<<")
+			//fmt.Println(hex.Dump(packetBuffer))
 
 			packetStructScanner.StructScan(&packet, packetBuffer)
 
@@ -212,7 +212,7 @@ func (c *Connection) SendPacket(packet *packetType.Packet) error {
 	var payload []byte
 	packetID := byte((*packet).GetPacketId())
 	packetStructScanner := structScanner.PacketStructScanner{}
-	fmt.Printf("Sending packet 0x%X\n", packetID)
+	// fmt.Printf("Sending packet 0x%X\n", packetID)
 
 	if c.EnableCompression {
 		uncompressedPayload := append([]byte{packetID}, packetStructScanner.UnmarshalData(*packet)...)
@@ -240,15 +240,15 @@ func (c *Connection) SendPacket(packet *packetType.Packet) error {
 	}
 
 	//if len(payload) < 1024 {
-	fmt.Println(">>>OUTGOING<<<")
-	fmt.Println(hex.Dump(payload))
+	//fmt.Println(">>>OUTGOING<<<")
+	//fmt.Println(hex.Dump(payload))
 	//}
 
 	if packetID == 0x34 {
 		fmt.Println(payload)
 	}
 
-	fmt.Println("Writing payload")
+	// fmt.Println("Writing payload")
 	var exception error
 	if c.EnableEncryption {
 		//fmt.Println("Packet is encrypted")

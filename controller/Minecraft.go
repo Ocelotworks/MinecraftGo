@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Ocelotworks/MinecraftGo/dataTypes"
+	"github.com/Ocelotworks/MinecraftGo/dataTypes/nbt"
 	"io/ioutil"
 	"math"
 	"time"
@@ -37,7 +38,7 @@ func CreateMinecraft() *Minecraft {
 		},
 		MaxPlayers:           255,
 		ConnectedPlayers:     0,
-		EnableEncryption:     true,
+		EnableEncryption:     false,
 		CompressionThreshold: -1,
 		GlobalEntityCounter:  1,
 		BlockData:            make(map[string]entity.BlockData),
@@ -371,8 +372,8 @@ func (mc *Minecraft) StartPlayerJoin(connection *Connection) {
 
 	connection.State = PLAY
 
-	//inData, exception := ioutil.ReadFile("data/codec.nbt")
-	//
+	inData, exception := ioutil.ReadFile("data/dimension_codec.nbt")
+
 	//compressed := bytes.NewReader(inData)
 	//zr, exception := gzip.NewReader(compressed)
 	//
@@ -386,86 +387,26 @@ func (mc *Minecraft) StartPlayerJoin(connection *Connection) {
 	//    fmt.Println(exception)
 	//}
 	//
-	//compound, _ := nbt.ReadNBT(uncompressed)
-	//
-	//codec := dataTypes.CodecOuterCompound{}
-	//
-	//structScanner.NBTStructScan(&codec, &compound)
+	compound, _ := nbt.ReadNBT(inData)
+
+	codec := dataTypes.CodecOuterCompound{}
+	nbt.NBTStructScan(&codec, &compound)
+	//os.WriteFile("ours2.nbt", compound.Write(), 0644)
+	//os.WriteFile("theirs2.nbt",, 0644)
 
 	joinGame := packetType.Packet(&packetType.JoinGame{
-		EntityID:         connection.Player.EntityID,
-		IsHardcore:       false,
-		Gamemode:         1,
-		PreviousGamemode: 1,
-		WorldNames:       []string{"minecraft:overworld"},
-		DimensionCodec: dataTypes.DimensionCodec{
-			DimensionType: dataTypes.DimensionTypeRegistry{
-				Type: "minecraft:dimension_type",
-				Value: []dataTypes.DimensionTypeRegistryEntry{{
-					Name: "minecraft:overworld",
-					Id:   0,
-					Element: dataTypes.DimensionType{
-						PiglinSafe:         0,
-						Natural:            1,
-						AmbientLight:       0,
-						Infiniburn:         "#minecraft:infiniburn_overworld",
-						RespawnAnchorWorks: 1,
-						HasSkylight:        1,
-						BedWorks:           1,
-						Effects:            "minecraft:overworld",
-						HasRaids:           1,
-						MinY:               -64,
-						Height:             384,
-						LogicalHeight:      256,
-						CoordinateScale:    1,
-						Ultrawarm:          0,
-						HasCeiling:         0,
-					},
-				}},
-			},
-			BiomeRegistry: dataTypes.BiomeRegistry{
-				Type: "minecraft:worldgen/biome",
-				Value: []dataTypes.BiomeRegistryEntry{{
-					Name: "minecraft:plains",
-					Id:   0,
-					Element: dataTypes.Biome{
-						Precipitation: "rain",
-						Depth:         1,
-						Temperature:   1,
-						Scale:         1,
-						Downfall:      0.4,
-						Category:      "plains",
-						Effects: dataTypes.BiomeEffect{
-							SkyColor:      7907327,
-							WaterFogColor: 329011,
-							FogColor:      12638463,
-							WaterColor:    4159204,
-						},
-					},
-				}},
-			},
-		},
-		Dimension: dataTypes.DimensionType{
-			PiglinSafe:         0,
-			Natural:            1,
-			AmbientLight:       1,
-			Infiniburn:         "",
-			RespawnAnchorWorks: 1,
-			HasSkylight:        1,
-			BedWorks:           1,
-			Effects:            "minecraft:overworld",
-			HasRaids:           1,
-			MinY:               0,
-			Height:             256,
-			LogicalHeight:      256,
-			CoordinateScale:    1,
-			Ultrawarm:          0,
-			HasCeiling:         0,
-		},
-		DimensionName:       "minecraft:overworld",
+		EntityID:            connection.Player.EntityID,
+		IsHardcore:          false,
+		Gamemode:            1,
+		PreviousGamemode:    1,
+		WorldNames:          []string{"valence:dimension_type_0"},
+		DimensionCodec:      codec,
+		Dimension:           dataTypes.DimensionOuterCompound{Inner: codec.Inner.DimensionType.Value[0].Element},
+		DimensionName:       "valence:dimension_type_0",
 		HashedSeed:          71495747907944700,
-		MaxPlayers:          byte(connection.Minecraft.MaxPlayers),
+		MaxPlayers:          connection.Minecraft.MaxPlayers,
 		ViewDistance:        32,
+		SimulationDistance:  32,
 		ReducedDebugInfo:    false,
 		EnableRespawnScreen: true,
 		IsDebug:             false,
@@ -498,9 +439,15 @@ func (mc *Minecraft) SendMessage(messageType byte, message entity.ChatMessage) {
 		return
 	}
 
+	blankUuid := make([]byte, 16)
+	for i := range blankUuid {
+		blankUuid[i] = 0
+	}
+
 	chatPacket := packetType.Packet(&packetType.ChatMessage{
 		ChatData: string(chatMessageJson),
 		Position: messageType,
+		Sender:   blankUuid,
 	})
 
 	for _, con := range mc.Connections {

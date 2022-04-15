@@ -3,13 +3,11 @@ package dataTypes
 import (
 	"encoding/binary"
 	"fmt"
-
-	"github.com/Ocelotworks/MinecraftGo/entity"
 )
 
 type RegionMetadata struct {
 	ChunkOffsets []*ChunkOffset
-	Chunks       []*Chunk
+	Chunks       []*RegionChunk
 }
 
 type ChunkOffset struct {
@@ -22,7 +20,7 @@ type Region struct {
 	Chunks []RegionChunk `nbt:"Chunk*"`
 }
 
-func ReadRegionFile(buf []byte, blockData map[string]entity.BlockData) RegionMetadata {
+func ReadRegionFile(buf []byte) RegionMetadata {
 	region := RegionMetadata{
 		ChunkOffsets: make([]*ChunkOffset, 1024),
 	}
@@ -46,19 +44,18 @@ func ReadRegionFile(buf []byte, blockData map[string]entity.BlockData) RegionMet
 
 	fmt.Println("Cursor: ", cursor)
 
-	region.Chunks = make([]*Chunk, 1024)
+	region.Chunks = make([]*RegionChunk, 1024)
 	for i := 0; i < 1024; i++ {
 		offset := region.ChunkOffsets[i].Offset
 		size := region.ChunkOffsets[i].Size
 		if size == 0 {
 			continue
 		}
-		fmt.Println("Offset is ", offset)
+		//fmt.Println("Offset is ", offset)
 
-		rawChunk, _ := ReadChunk(buf[offset:], blockData)
-		chunk := rawChunk.(Chunk)
-		region.Chunks[i] = &chunk
-		//cursor += length
+		chunk, length := ReadRegionChunk(buf[offset:])
+		region.Chunks[i] = chunk
+		cursor += length
 	}
 
 	//chunk, _ := ReadChunk(buf[cursor:])

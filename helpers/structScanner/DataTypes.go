@@ -52,6 +52,6 @@ func ReadNBT(buf []byte) (interface{}, int) {
 }
 
 func WriteNBT(compoundStruct interface{}) []byte {
-	output := NBTMarshal(compoundStruct)
+	output := nbt.NBTMarshal(compoundStruct)
 	return output[:len(output)-1]
 }

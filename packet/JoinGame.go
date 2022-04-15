@@ -6,21 +6,22 @@ import (
 )
 
 type JoinGame struct {
-	EntityID            int                      `proto:"int"`
-	IsHardcore          bool                     `proto:"bool"`
-	Gamemode            byte                     `proto:"unsignedByte"`
-	PreviousGamemode    byte                     `proto:"unsignedByte"`
-	WorldNames          []string                 `proto:"stringArray"`
-	DimensionCodec      dataTypes.DimensionCodec `proto:"nbt"`
-	Dimension           dataTypes.DimensionType  `proto:"nbt"`
-	DimensionName       string                   `proto:"string"`
-	HashedSeed          int64                    `proto:"long"`
-	MaxPlayers          byte                     `proto:"unsignedByte"`
-	ViewDistance        int                      `proto:"varInt"`
-	ReducedDebugInfo    bool                     `proto:"bool"`
-	EnableRespawnScreen bool                     `proto:"bool"`
-	IsDebug             bool                     `proto:"bool"`
-	IsFlat              bool                     `proto:"bool"`
+	EntityID            int                              `proto:"int"`
+	IsHardcore          bool                             `proto:"bool"`
+	Gamemode            byte                             `proto:"unsignedByte"`
+	PreviousGamemode    byte                             `proto:"unsignedByte"`
+	WorldNames          []string                         `proto:"stringArray"`
+	DimensionCodec      dataTypes.CodecOuterCompound     `proto:"nbt"`
+	Dimension           dataTypes.DimensionOuterCompound `proto:"nbt"`
+	DimensionName       string                           `proto:"string"`
+	HashedSeed          int64                            `proto:"long"`
+	MaxPlayers          int                              `proto:"varInt"`
+	ViewDistance        int                              `proto:"varInt"`
+	SimulationDistance  int                              `proto:"varInt"`
+	ReducedDebugInfo    bool                             `proto:"bool"`
+	EnableRespawnScreen bool                             `proto:"bool"`
+	IsDebug             bool                             `proto:"bool"`
+	IsFlat              bool                             `proto:"bool"`
 }
 
 func (ls *JoinGame) GetPacketId() int {

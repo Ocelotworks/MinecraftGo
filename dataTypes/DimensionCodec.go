@@ -18,7 +18,6 @@ type DimensionTypeRegistry struct {
 	Type  string                       `nbt:"type"`
 	Value []DimensionTypeRegistryEntry `nbt:"value"`
 }
-
 type DimensionTypeRegistryEntry struct {
 	Name    string        `nbt:"name"`
 	Id      int32         `nbt:"id"`

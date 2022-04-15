@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/Ocelotworks/MinecraftGo/dataTypes"
 	"github.com/Ocelotworks/MinecraftGo/entity"
@@ -37,22 +36,12 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 		randomBiomes[i] = 1
 	}
 
-	randomHeightMap := make([]int64, 36)
-	for i := 0; i < 36; i++ {
+	randomHeightMap := make([]int64, 256)
+	for i := 0; i < 256; i++ {
 		randomHeightMap[i] = math.MaxInt64
 	}
 
-	blockFile, exception := ioutil.ReadFile("data/blocks.json")
-
-	blockData := make(map[string]entity.BlockData)
-	exception = json.Unmarshal(blockFile, &blockData)
-
-	if exception != nil {
-		fmt.Println("Reading block data", exception)
-		return
-	}
-
-	inData, exception := ioutil.ReadFile("data/worlds/world/region/r.0.0.mca") //ioutil.ReadFile("C:\\Users\\Peter\\AppData\\Roaming\\.minecraft\\saves\\MCGO Flat Test 2\\region\\r.0.0.mca")
+	inData, exception := ioutil.ReadFile("data/worlds/regiondebug/region/r.0.0.mca") //ioutil.ReadFile("data/worlds/MCGO_FlatTest/region/r.0.0.mca")
 
 	if exception != nil {
 		fmt.Println("Reading file")
@@ -60,41 +49,44 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 		return
 	}
 
-	region := dataTypes.ReadRegionFile(inData, connection.Minecraft.BlockData)
-
-	//fmt.Println(level)
-
-	//palette := level["Sections"].(map[string]interface{})["List-0"].(map[string]interface{})["Compound_1"].(map[string]interface{})["Palette"].(map[string]interface{})
-
-	//byte((len(castBlockStates)*64)/4096),
+	region := dataTypes.ReadRegionFile(inData)
 
 	for i, chunk := range region.Chunks {
-		fmt.Println(chunk)
-		chunkRaw := dataTypes.WriteChunk(chunk.Sections)
-		fmt.Println(len(chunk.Sections))
+		if chunk == nil {
+			continue
+		}
 		if len(chunk.Sections) == 0 {
 			fmt.Println("not sending blank chunk")
 			continue
 		}
+		fmt.Println("Sending chunk", chunk.XPos, chunk.YPos, chunk.ZPos)
+		chunkRaw := dataTypes.WriteNetChunk(chunk, connection.Minecraft.BlockData)
+
+		lightMaskLength := (len(chunk.Sections) + 2) / 8
+		lightMask := dataTypes.WriteVarInt(lightMaskLength)
+		for i := 0; i < lightMaskLength; i++ {
+			lightMask = append(lightMask, dataTypes.WriteLong(int64(0))...)
+		}
+
 		chunkData := packetType.Packet(&packetType.ChunkData{
 			X: i % 32,
 			Z: i / 32,
-			HeightMap: packetType.HeightMap{
+			HeightMap: packetType.HeightMapOuter{Inner: packetType.HeightMap{
 				MotionBlocking: randomHeightMap,
-			},
+			}},
 			DataSize:             len(chunkRaw),
 			Data:                 chunkRaw,
 			BlockEntityCount:     0,
-			BlockEntities:        make([]byte, 0),
+			BlockEntities:        []byte{},
 			TrustEdges:           true,
-			SkyLightMask:         []int64{},
-			BlockLightMask:       []int64{},
-			EmptySkyLightMask:    []int64{},
-			EmptyBlockLightMask:  []int64{},
-			SkyLightArrayCount:   0,
-			SkyLightArrays:       []byte{},
-			BlockLightArrayCount: 0,
-			BlockLightArrays:     []byte{},
+			SkyLightMask:         lightMask,
+			BlockLightMask:       lightMask,
+			EmptySkyLightMask:    lightMask,
+			EmptyBlockLightMask:  lightMask,
+			SkyLightArrayCount:   2048,
+			SkyLightArrays:       make([]byte, 2048),
+			BlockLightArrayCount: 2048,
+			BlockLightArrays:     make([]byte, 2048),
 		})
 
 		connection.SendPacket(&chunkData)
@@ -103,18 +95,20 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 
 	playerSpawn := packetType.Packet(&packetType.SpawnPosition{
 		Location: 0,
+		Angle:    0,
 	})
 
 	connection.SendPacket(&playerSpawn)
 
 	playerPos := packetType.Packet(&packetType.PlayerPositionAndLook{
-		X:          connection.Player.X,
-		Y:          connection.Player.Y,
-		Z:          connection.Player.Z,
-		Yaw:        connection.Player.Yaw,
-		Pitch:      connection.Player.Pitch,
-		Flags:      0,
-		TeleportID: 12345,
+		X:               connection.Player.X,
+		Y:               connection.Player.Y,
+		Z:               connection.Player.Z,
+		Yaw:             connection.Player.Yaw,
+		Pitch:           connection.Player.Pitch,
+		Flags:           0,
+		TeleportID:      12345,
+		DismountVehicle: true,
 	})
 
 	connection.SendPacket(&playerPos)
