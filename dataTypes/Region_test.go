@@ -17,10 +17,10 @@ func TestRegionLoad(t *testing.T) {
 	exception = json.Unmarshal(blockFile, &blockData)
 	assert.NoError(t, exception)
 
-	inData, exception := ioutil.ReadFile("../data/worlds/MCGO_FlatTest/region/r.0.0.mca")
+	inData, exception := ioutil.ReadFile("../data/worlds/mcgo/region/r.0.0.mca")
 	assert.NoError(t, exception)
 
-	region := ReadRegionFile(inData, blockData)
+	region := ReadRegionFile(inData)
 
 	fmt.Println(region)
 

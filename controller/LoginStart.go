@@ -36,9 +36,9 @@ func (ls *LoginStart) Handle(packet []byte, connection *Connection) {
 			Text: ls.CurrentPacket.Username,
 		},
 		EntityID: connection.Minecraft.GlobalEntityCounter,
-		X:        5,
-		Y:        255,
-		Z:        5,
+		X:        100,
+		Y:        64,
+		Z:        100,
 		Yaw:      0,
 		Pitch:    0,
 	}

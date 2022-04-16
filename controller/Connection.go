@@ -69,6 +69,7 @@ var controllers = map[State][]Packet{
 		constants.SBEntityAction:              &EntityAction{},
 		constants.SBHeldItemChange:            &HeldItemChange{},
 		constants.SBAnimation:                 &Animation{},
+		constants.SBClientStatus:              &ClientStatus{},
 	},
 }
 
@@ -242,11 +243,7 @@ func (c *Connection) SendPacket(packet *packetType.Packet) error {
 	//if len(payload) < 1024 {
 	//fmt.Println(">>>OUTGOING<<<")
 	//fmt.Println(hex.Dump(payload))
-	//}
-
-	if packetID == 0x34 {
-		fmt.Println(payload)
-	}
+	///}
 
 	// fmt.Println("Writing payload")
 	var exception error

@@ -2,11 +2,11 @@ package controller
 
 import (
 	"fmt"
+	"github.com/Ocelotworks/MinecraftGo/constants"
 	"github.com/Ocelotworks/MinecraftGo/dataTypes"
 	"github.com/Ocelotworks/MinecraftGo/entity"
 	packetType "github.com/Ocelotworks/MinecraftGo/packet"
 	"io/ioutil"
-	"math"
 )
 
 type ClientSettings struct {
@@ -31,17 +31,75 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 		MainHand:           cs.CurrentPacket.MainHand,
 	}
 
-	randomBiomes := make([]int, 1024)
-	for i := 0; i < 1024; i++ {
-		randomBiomes[i] = 1
+	heldItemChange := packetType.Packet(&packetType.HeldItemChange{
+		Slot:     0,
+		IsServer: true,
+	})
+	connection.SendPacket(&heldItemChange)
+
+	// If I ignore this it will go away
+	//tagBytes := dataTypes.WriteString("minecraft:block")
+	//blockTagBytes := make([]byte, 0)
+	//blockTagCount := 0
+	//for _, block := range connection.Minecraft.BlockData {
+	//    for _, state := range block.States {
+	//        blockTagBytes = append(blockTagBytes, dataTypes.WriteVarInt(state.ID)...)
+	//        blockTagCount++
+	//    }
+	//}
+	//
+	//tagBytes = append(tagBytes, dataTypes.WriteVarInt(blockTagCount)...)
+	//tagBytes = append(tagBytes, blockTagBytes...)
+	//tagBytes = append(tagBytes, dataTypes.WriteString("minecraft:item")...)
+	//tagBytes = append(tagBytes, dataTypes.WriteVarInt(0)...)
+	//tagBytes = append(tagBytes, dataTypes.WriteString("minecraft:fluid")...)
+	//tagBytes = append(tagBytes, dataTypes.WriteVarInt(0)...)
+	//tagBytes = append(tagBytes, dataTypes.WriteString("minecraft:entity_type")...)
+	//tagBytes = append(tagBytes, dataTypes.WriteVarInt(0)...)
+	//tagBytes = append(tagBytes, dataTypes.WriteString("minecraft:game_event")...)
+	//tagBytes = append(tagBytes, dataTypes.WriteVarInt(0)...)
+	//
+	//tags := packetType.Packet(&packetType.Tags{
+	//    TagCount: 5,
+	//    Tags:     tagBytes,
+	//})
+	//
+	//connection.SendPacket(&tags)
+
+	entityStatus := packetType.Packet(&packetType.EntityStatus{
+		EntityID:     connection.Player.EntityID,
+		EntityStatus: constants.PlayerOp4,
+	})
+
+	connection.SendPacket(&entityStatus)
+
+	entityStatus2 := packetType.Packet(&packetType.EntityStatus{
+		EntityID:     connection.Player.EntityID,
+		EntityStatus: constants.PlayerReducedDebugInfoDisabled,
+	})
+
+	connection.SendPacket(&entityStatus2)
+
+	viewPos := packetType.Packet(&packetType.UpdateViewPosition{
+		ChunkX: 6,
+		ChunkZ: 6,
+	})
+
+	connection.SendPacket(&viewPos)
+
+	playerSpawn := packetType.Packet(&packetType.SpawnPosition{
+		Location: 0,
+		Angle:    0,
+	})
+
+	connection.SendPacket(&playerSpawn)
+
+	randomHeightMap := make([]int64, 36)
+	for i := range randomHeightMap {
+		randomHeightMap[i] = 0x0100804020100804
 	}
 
-	randomHeightMap := make([]int64, 256)
-	for i := 0; i < 256; i++ {
-		randomHeightMap[i] = math.MaxInt64
-	}
-
-	inData, exception := ioutil.ReadFile("data/worlds/regiondebug/region/r.0.0.mca") //ioutil.ReadFile("data/worlds/MCGO_FlatTest/region/r.0.0.mca")
+	inData, exception := ioutil.ReadFile("data/worlds/mcgo/region/r.0.0.mca") //ioutil.ReadFile("data/worlds/MCGO_FlatTest/region/r.0.0.mca")
 
 	if exception != nil {
 		fmt.Println("Reading file")
@@ -51,7 +109,7 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 
 	region := dataTypes.ReadRegionFile(inData)
 
-	for i, chunk := range region.Chunks {
+	for _, chunk := range region.Chunks {
 		if chunk == nil {
 			continue
 		}
@@ -69,8 +127,8 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 		}
 
 		chunkData := packetType.Packet(&packetType.ChunkData{
-			X: i % 32,
-			Z: i / 32,
+			X: int(chunk.XPos),
+			Z: int(chunk.ZPos),
 			HeightMap: packetType.HeightMapOuter{Inner: packetType.HeightMap{
 				MotionBlocking: randomHeightMap,
 			}},
@@ -90,15 +148,7 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 		})
 
 		connection.SendPacket(&chunkData)
-
 	}
-
-	playerSpawn := packetType.Packet(&packetType.SpawnPosition{
-		Location: 0,
-		Angle:    0,
-	})
-
-	connection.SendPacket(&playerSpawn)
 
 	playerPos := packetType.Packet(&packetType.PlayerPositionAndLook{
 		X:               connection.Player.X,
@@ -112,15 +162,9 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 	})
 
 	connection.SendPacket(&playerPos)
+
 	connection.Minecraft.PlayerJoin(connection)
 
 	//TODO Player info
-
-	//viewPos := Packet(&UpdateViewPosition{
-	//	ChunkX: 1,
-	////	ChunkZ: 2,
-	////})
-	//
-	//connection.SendPacket(&viewPos)
 
 }
