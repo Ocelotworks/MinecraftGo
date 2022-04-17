@@ -10,3 +10,12 @@ type BlockState struct {
 	Default    bool              `json:"default"`
 	Properties map[string]string `json:"properties"`
 }
+
+type Block struct {
+	BlockName  string
+	Properties map[string]string
+	X          int
+	Y          int
+	Z          int
+	// TODO: Entities
+}

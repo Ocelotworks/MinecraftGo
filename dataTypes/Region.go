@@ -3,11 +3,22 @@ package dataTypes
 import (
 	"encoding/binary"
 	"fmt"
+	"math"
 )
 
 type RegionMetadata struct {
 	ChunkOffsets []*ChunkOffset
 	Chunks       []*RegionChunk
+}
+
+func (rm *RegionMetadata) GetChunk(cx int32, cz int32) *RegionChunk {
+	for _, chunk := range rm.Chunks {
+		if chunk.XPos == cx && chunk.ZPos == cz {
+			return chunk
+		}
+	}
+	fmt.Println("Unable to find chunk for ", cx, cz)
+	return nil
 }
 
 type ChunkOffset struct {
@@ -42,7 +53,7 @@ func ReadRegionFile(buf []byte) RegionMetadata {
 		//fmt.Println(region.ChunkOffsets[i])
 	}
 
-	fmt.Println("Cursor: ", cursor)
+	// fmt.Println("Cursor: ", cursor)
 
 	region.Chunks = make([]*RegionChunk, 1024)
 	for i := 0; i < 1024; i++ {
@@ -54,6 +65,9 @@ func ReadRegionFile(buf []byte) RegionMetadata {
 		//fmt.Println("Offset is ", offset)
 
 		chunk, length := ReadRegionChunk(buf[offset:])
+		for i := range chunk.Sections {
+			chunk.Sections[i].BitsPerBlock = byte(math.Ceil(math.Log(float64(len(chunk.Sections[i].BlockStates.Palette))) / math.Log(2)))
+		}
 		region.Chunks[i] = chunk
 		cursor += length
 	}

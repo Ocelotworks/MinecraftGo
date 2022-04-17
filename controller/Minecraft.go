@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Ocelotworks/MinecraftGo/dataTypes"
-	"github.com/Ocelotworks/MinecraftGo/dataTypes/nbt"
-	"io/ioutil"
 	"math"
 	"time"
 
@@ -22,9 +20,9 @@ type Minecraft struct {
 	EnableEncryption     bool
 	CompressionThreshold int
 	GlobalEntityCounter  int
-	BlockData            map[string]entity.BlockData
 	WorldAge             int64
 	TimeOfDay            int64
+	DataStore            *DataStore
 }
 
 func CreateMinecraft() *Minecraft {
@@ -38,18 +36,10 @@ func CreateMinecraft() *Minecraft {
 		},
 		MaxPlayers:           255,
 		ConnectedPlayers:     0,
-		EnableEncryption:     false,
+		EnableEncryption:     true,
 		CompressionThreshold: -1,
 		GlobalEntityCounter:  1,
-		BlockData:            make(map[string]entity.BlockData),
-	}
-
-	blockFile, exception := ioutil.ReadFile("data/blocks.json")
-	exception = json.Unmarshal(blockFile, &mc.BlockData)
-
-	if exception != nil {
-		fmt.Println("Error reading block data", exception)
-		return mc
+		DataStore:            NewDataStore(),
 	}
 
 	//go mc.timeTracker()
@@ -372,25 +362,6 @@ func (mc *Minecraft) StartPlayerJoin(connection *Connection) {
 
 	connection.State = PLAY
 
-	inData, exception := ioutil.ReadFile("data/dimension_codec.nbt")
-
-	//compressed := bytes.NewReader(inData)
-	//zr, exception := gzip.NewReader(compressed)
-	//
-	//if exception != nil {
-	//    fmt.Println(exception)
-	//}
-	//
-	//uncompressed, exception := ioutil.ReadAll(zr)
-	//
-	//if exception != nil {
-	//    fmt.Println(exception)
-	//}
-	//
-	compound, _ := nbt.ReadNBT(inData)
-
-	codec := dataTypes.CodecOuterCompound{}
-	nbt.NBTStructScan(&codec, &compound)
 	//os.WriteFile("ours2.nbt", compound.Write(), 0644)
 	//os.WriteFile("theirs2.nbt",, 0644)
 
@@ -399,10 +370,10 @@ func (mc *Minecraft) StartPlayerJoin(connection *Connection) {
 		IsHardcore:          false,
 		Gamemode:            1,
 		PreviousGamemode:    1,
-		WorldNames:          []string{"valence:dimension_type_0"},
-		DimensionCodec:      codec,
-		Dimension:           dataTypes.DimensionOuterCompound{Inner: codec.Inner.DimensionType.Value[0].Element},
-		DimensionName:       "valence:dimension_type_0",
+		WorldNames:          []string{"minecraft:overworld"}, // TODO: this but properly
+		DimensionCodec:      *connection.Minecraft.DataStore.Codec,
+		Dimension:           dataTypes.DimensionOuterCompound{Inner: connection.Minecraft.DataStore.Codec.Inner.DimensionType.Value[0].Element},
+		DimensionName:       "minecraft:overworld",
 		HashedSeed:          71495747907944700,
 		MaxPlayers:          connection.Minecraft.MaxPlayers,
 		ViewDistance:        32,

@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
-	"github.com/Ocelotworks/MinecraftGo/dataTypes"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"testing"
@@ -85,8 +84,12 @@ func TestNBTMarshalList(t *testing.T) {
 	assert.Equal(t, listTestVal, listTestReread)
 }
 
-func TestLoadCodecNBT(t *testing.T) {
-	inData, exception := ioutil.ReadFile("../../data/codec.nbt")
+type compoundMapTest struct {
+	CompoundMapString map[string]interface{} `nbt:"Level"`
+}
+
+func TestCompoundMapTest(t *testing.T) {
+	inData, exception := ioutil.ReadFile("../../data/nbt-test/bigtest.nbt")
 	assert.Nil(t, exception)
 
 	compressed := bytes.NewReader(inData)
@@ -96,12 +99,9 @@ func TestLoadCodecNBT(t *testing.T) {
 	uncompressed, exception := ioutil.ReadAll(zr)
 	assert.Nil(t, exception)
 
+	compoundTestVal := compoundMapTest{}
 	compound, _ := ReadNBT(uncompressed)
-
-	codec := dataTypes.CodecOuterCompound{}
-
-	NBTStructScan(&codec, &compound)
-
-	data, _ := json.Marshal(codec)
-	fmt.Println(string(data))
+	NBTStructScan(&compoundTestVal, &compound)
+	out, _ := json.Marshal(compoundTestVal)
+	fmt.Println(string(out))
 }

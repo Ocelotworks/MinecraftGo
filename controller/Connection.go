@@ -26,6 +26,7 @@ type Connection struct {
 	Ping              int
 	EnableCompression bool
 	EnableEncryption  bool
+	Joined            bool
 
 	VerifyToken      []byte
 	SharedSecret     []byte
@@ -70,11 +71,13 @@ var controllers = map[State][]Packet{
 		constants.SBHeldItemChange:            &HeldItemChange{},
 		constants.SBAnimation:                 &Animation{},
 		constants.SBClientStatus:              &ClientStatus{},
+		constants.SBPlayerBlockPlacement:      &PlayerBlockPlacement{},
 	},
 }
 
 func Init(conn net.Conn, key *rsa.PrivateKey, minecraft *Minecraft) *Connection {
-	fmt.Println("--New Connection!")
+	fmt.Printf("--New Connection from %s!\n", conn.RemoteAddr().String())
+
 	newConnection := Connection{
 		State:             HANDSHAKING,
 		Conn:              conn,
@@ -82,6 +85,7 @@ func Init(conn net.Conn, key *rsa.PrivateKey, minecraft *Minecraft) *Connection 
 		Minecraft:         minecraft,
 		EnableCompression: false,
 		EnableEncryption:  false,
+		Joined:            false,
 		Ping:              -1,
 	}
 
@@ -110,6 +114,7 @@ func (c *Connection) sendKeepAlive() {
 }
 
 func (c *Connection) Handle() {
+	defer c.HandleError()
 	packetStructScanner := structScanner.PacketStructScanner{}
 	buf := make([]byte, 4096)
 	for {
@@ -207,6 +212,13 @@ func (c *Connection) Handle() {
 			packetController.Handle(decryptedBuf, c)
 		}
 	}
+}
+
+func (c *Connection) HandleError() {
+	if r := recover(); r != nil {
+		fmt.Println(r)
+	}
+	_ = c.Conn.Close()
 }
 
 func (c *Connection) SendPacket(packet *packetType.Packet) error {

@@ -6,7 +6,6 @@ import (
 	"github.com/Ocelotworks/MinecraftGo/dataTypes"
 	"github.com/Ocelotworks/MinecraftGo/entity"
 	packetType "github.com/Ocelotworks/MinecraftGo/packet"
-	"io/ioutil"
 )
 
 type ClientSettings struct {
@@ -31,40 +30,16 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 		MainHand:           cs.CurrentPacket.MainHand,
 	}
 
+	if connection.Joined {
+		fmt.Println("Ignoring ClientSettings from already joined client")
+		return
+	}
+
 	heldItemChange := packetType.Packet(&packetType.HeldItemChange{
 		Slot:     0,
 		IsServer: true,
 	})
 	connection.SendPacket(&heldItemChange)
-
-	// If I ignore this it will go away
-	//tagBytes := dataTypes.WriteString("minecraft:block")
-	//blockTagBytes := make([]byte, 0)
-	//blockTagCount := 0
-	//for _, block := range connection.Minecraft.BlockData {
-	//    for _, state := range block.States {
-	//        blockTagBytes = append(blockTagBytes, dataTypes.WriteVarInt(state.ID)...)
-	//        blockTagCount++
-	//    }
-	//}
-	//
-	//tagBytes = append(tagBytes, dataTypes.WriteVarInt(blockTagCount)...)
-	//tagBytes = append(tagBytes, blockTagBytes...)
-	//tagBytes = append(tagBytes, dataTypes.WriteString("minecraft:item")...)
-	//tagBytes = append(tagBytes, dataTypes.WriteVarInt(0)...)
-	//tagBytes = append(tagBytes, dataTypes.WriteString("minecraft:fluid")...)
-	//tagBytes = append(tagBytes, dataTypes.WriteVarInt(0)...)
-	//tagBytes = append(tagBytes, dataTypes.WriteString("minecraft:entity_type")...)
-	//tagBytes = append(tagBytes, dataTypes.WriteVarInt(0)...)
-	//tagBytes = append(tagBytes, dataTypes.WriteString("minecraft:game_event")...)
-	//tagBytes = append(tagBytes, dataTypes.WriteVarInt(0)...)
-	//
-	//tags := packetType.Packet(&packetType.Tags{
-	//    TagCount: 5,
-	//    Tags:     tagBytes,
-	//})
-	//
-	//connection.SendPacket(&tags)
 
 	entityStatus := packetType.Packet(&packetType.EntityStatus{
 		EntityID:     connection.Player.EntityID,
@@ -73,13 +48,6 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 
 	connection.SendPacket(&entityStatus)
 
-	entityStatus2 := packetType.Packet(&packetType.EntityStatus{
-		EntityID:     connection.Player.EntityID,
-		EntityStatus: constants.PlayerReducedDebugInfoDisabled,
-	})
-
-	connection.SendPacket(&entityStatus2)
-
 	viewPos := packetType.Packet(&packetType.UpdateViewPosition{
 		ChunkX: 6,
 		ChunkZ: 6,
@@ -87,27 +55,8 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 
 	connection.SendPacket(&viewPos)
 
-	playerSpawn := packetType.Packet(&packetType.SpawnPosition{
-		Location: 0,
-		Angle:    0,
-	})
-
-	connection.SendPacket(&playerSpawn)
-
-	randomHeightMap := make([]int64, 36)
-	for i := range randomHeightMap {
-		randomHeightMap[i] = 0x0100804020100804
-	}
-
-	inData, exception := ioutil.ReadFile("data/worlds/mcgo/region/r.0.0.mca") //ioutil.ReadFile("data/worlds/MCGO_FlatTest/region/r.0.0.mca")
-
-	if exception != nil {
-		fmt.Println("Reading file")
-		fmt.Println(exception)
-		return
-	}
-
-	region := dataTypes.ReadRegionFile(inData)
+	// Region 0,0
+	region := connection.Minecraft.DataStore.Map[0][0]
 
 	for _, chunk := range region.Chunks {
 		if chunk == nil {
@@ -117,8 +66,8 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 			fmt.Println("not sending blank chunk")
 			continue
 		}
-		fmt.Println("Sending chunk", chunk.XPos, chunk.YPos, chunk.ZPos)
-		chunkRaw := dataTypes.WriteNetChunk(chunk, connection.Minecraft.BlockData)
+		//fmt.Println("Sending chunk", chunk.XPos, chunk.YPos, chunk.ZPos)
+		chunkRaw := dataTypes.WriteNetChunk(chunk, connection.Minecraft.DataStore.BlockData)
 
 		lightMaskLength := (len(chunk.Sections) + 2) / 8
 		lightMask := dataTypes.WriteVarInt(lightMaskLength)
@@ -130,7 +79,7 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 			X: int(chunk.XPos),
 			Z: int(chunk.ZPos),
 			HeightMap: packetType.HeightMapOuter{Inner: packetType.HeightMap{
-				MotionBlocking: randomHeightMap,
+				MotionBlocking: chunk.Heightmaps.MotionBlocking,
 			}},
 			DataSize:             len(chunkRaw),
 			Data:                 chunkRaw,
@@ -150,6 +99,13 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 		connection.SendPacket(&chunkData)
 	}
 
+	playerSpawn := packetType.Packet(&packetType.SpawnPosition{
+		Location: 0,
+		Angle:    0,
+	})
+
+	connection.SendPacket(&playerSpawn)
+
 	playerPos := packetType.Packet(&packetType.PlayerPositionAndLook{
 		X:               connection.Player.X,
 		Y:               connection.Player.Y,
@@ -162,6 +118,7 @@ func (cs *ClientSettings) Handle(packet []byte, connection *Connection) {
 	})
 
 	connection.SendPacket(&playerPos)
+	connection.Joined = true
 
 	connection.Minecraft.PlayerJoin(connection)
 
