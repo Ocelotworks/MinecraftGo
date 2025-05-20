@@ -1,7 +1,6 @@
 package packet
 
 import (
-	"github.com/Ocelotworks/MinecraftGo/constants"
 	"github.com/Ocelotworks/MinecraftGo/entity"
 )
 
@@ -25,15 +24,15 @@ type PlayerInfoUpdatePing struct {
 
 // TODO: this is all completely different now
 func (piap *PlayerInfoAddPlayer) GetPacketId() int {
-	return constants.CBPlayerInfo
+	return 0
 }
 
 func (pirp *PlayerInfoRemovePlayer) GetPacketId() int {
-	return constants.CBPlayerInfo
+	return 0
 }
 
 func (piup *PlayerInfoUpdatePing) GetPacketId() int {
-	return constants.CBPlayerInfo
+	return 0
 }
 
 /**
