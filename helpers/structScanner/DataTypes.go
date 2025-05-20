@@ -23,6 +23,7 @@ var dataReadMap = map[string]func(buf []byte) (interface{}, int){
 	"varIntByteArray": dataTypes.ReadVarIntByteArray,
 	"bitset":          dataTypes.ReadBitSet,
 	"nbt":             ReadNBT,
+	"position":        dataTypes.ReadPosition,
 }
 
 var dataWriteMap = map[string]func(any) []byte{
@@ -45,6 +46,7 @@ var dataWriteMap = map[string]func(any) []byte{
 	"stringArray":    dataTypes.WriteStringArray,
 	"bitset":         dataTypes.WriteBitSet,
 	"nbt":            WriteNBT,
+	"position":       dataTypes.WritePosition,
 }
 
 // Import cycle moment

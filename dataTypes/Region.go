@@ -13,7 +13,7 @@ type RegionMetadata struct {
 
 func (rm *RegionMetadata) GetChunk(cx int32, cz int32) *RegionChunk {
 	for _, chunk := range rm.Chunks {
-		if chunk.XPos == cx && chunk.ZPos == cz {
+		if chunk != nil && chunk.XPos == cx && chunk.ZPos == cz {
 			return chunk
 		}
 	}
@@ -67,6 +67,9 @@ func ReadRegionFile(buf []byte) RegionMetadata {
 		chunk, length := ReadRegionChunk(buf[offset:])
 		for i := range chunk.Sections {
 			chunk.Sections[i].BitsPerBlock = byte(math.Ceil(math.Log(float64(len(chunk.Sections[i].BlockStates.Palette))) / math.Log(2)))
+			if chunk.Sections[i].BitsPerBlock < 4 {
+				chunk.Sections[i].BitsPerBlock = 4
+			}
 		}
 		region.Chunks[i] = chunk
 		cursor += length

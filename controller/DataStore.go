@@ -39,7 +39,7 @@ func (ds *DataStore) LoadBlockData() {
 
 func (ds *DataStore) LoadStartingArea() {
 	fmt.Println("Loading starting region...")
-	inData, exception := ioutil.ReadFile("data/worlds/flat/region/r.0.0.mca")
+	inData, exception := ioutil.ReadFile("C:\\Users\\unacc\\AppData\\Roaming\\.minecraft\\saves\\flat\\region\\r.0.0.mca")
 
 	if exception != nil {
 		fmt.Println("Reading file")

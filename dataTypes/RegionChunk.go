@@ -7,6 +7,7 @@ import (
 	"github.com/Ocelotworks/MinecraftGo/dataTypes/nbt"
 	"io"
 	"math"
+	"strings"
 )
 
 type OuterChunk struct {
@@ -42,31 +43,72 @@ type RegionChunk struct {
 // GetBlockAt gets block data for a block at a specific coordinate
 func (rc *RegionChunk) GetBlockAt(x int, y int, z int) {
 	section := rc.GetSection(y)
+	if section.BlockStates.Data == nil {
+		fmt.Println("Section is empty", int8(section.Y))
+		return
+	}
+
+	// Each section contains n entries
+	// Each entry contains 64 bits
+	// Each entry contains 64 / BitsPerBlock blocks
+	// Each block is an integer pointing to its palette entry
+	//
+
+	normalY := int(math.Abs(float64(int(section.Y)*16 - y)))
 	blocksPerEntry := math.Ceil(float64(64 / section.BitsPerBlock))
-	blockIndex := float64(x + (z * 16))
-	entryNumber := int(math.Ceil(blockIndex / blocksPerEntry))
-	bitIndex := int(blockIndex) % int(blocksPerEntry)
+	blockIndex := (normalY%16)*16*16 + z*16 + x
+	entryNumber := int(math.Ceil(float64(blockIndex) / blocksPerEntry))
+	bitIndex := blockIndex % int(blocksPerEntry)
 	entry := section.BlockStates.Data[entryNumber]
 	maskOffset := uint(bitIndex * int(section.BitsPerBlock))
 	mask := uint(math.Pow(2, float64(section.BitsPerBlock))-1) << maskOffset
 	result := (uint(entry) & mask) >> maskOffset
 
-	fmt.Printf("entry=%d index=%d bpb=%d\n", entryNumber, bitIndex, section.BitsPerBlock)
+	blocks := 0
+	for pEntryNumber, entry := range section.BlockStates.Data {
+		blocksPerEntry := int(math.Ceil(float64(64 / section.BitsPerBlock)))
+		for pBlockIndex := 0; pBlockIndex < blocksPerEntry; pBlockIndex++ {
+			if blocks%16 == 0 {
+				fmt.Println(" ", blocks, pEntryNumber)
+			}
+			blocks++
+			pBitIndex := pBlockIndex % blocksPerEntry
+			maskOffset := uint(pBitIndex * int(section.BitsPerBlock))
+			mask := uint(math.Pow(2, float64(section.BitsPerBlock))-1) << maskOffset
+			paletteIndex := (uint(entry) & mask) >> maskOffset
+
+			block := section.BlockStates.Palette[paletteIndex]
+			if pBlockIndex == bitIndex && pEntryNumber == entryNumber {
+				fmt.Print(">")
+			}
+			fmt.Print(strings.ToUpper(string([]rune(block.Name)[strings.Index(block.Name, ":")+1])))
+			if pBlockIndex == bitIndex && pEntryNumber == entryNumber {
+				fmt.Print("<")
+				return
+			}
+		}
+	}
+
+	fmt.Println()
+
+	fmt.Printf("blocksPerEntry=%.0f blockIndex=%d normalY=%d entry=%d bitIndex=%d bpb=%d\n", blocksPerEntry, blockIndex, normalY, entryNumber, bitIndex, section.BitsPerBlock)
 	fmt.Printf("entry: %64b\n", entry)
 	fmt.Printf("mask:  %64b\n", mask)
-	//fmt.Printf("upper: %64b\n", upperMask)
-	// fmt.Printf("combi: %64b\n", combinedMask)
 	fmt.Printf("resul: %64b\n", result)
 
 	block := section.BlockStates.Palette[result]
 	fmt.Println("Block name: ", block.Name)
+}
 
+func (rc *RegionChunk) GetBlockAtPos(pos *Position) {
+	rc.GetBlockAt(int(pos.X), int(pos.Y), int(pos.Z))
 }
 
 func (rc *RegionChunk) GetSection(y int) *ChunkSection {
 	for i, section := range rc.Sections {
 		// TODO: 16 should be calculated from world height
 		if int(int8(section.Y)*16) > y {
+			fmt.Println("Section ", i-1)
 			return &rc.Sections[i-1]
 		}
 	}
@@ -123,7 +165,7 @@ type ChunkBlockEntity struct {
 }
 
 type ChunkSection struct {
-	Y            byte                    `nbt:"Y"`
+	Y            int8                    `nbt:"Y"`
 	BlockLight   []byte                  `nbt:"BlockLight"`
 	Biomes       ChunkSectionBiome       `nbt:"biomes"`
 	BlockStates  ChunkSectionBlockStates `nbt:"block_states"`

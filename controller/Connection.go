@@ -187,7 +187,7 @@ func (c *Connection) Handle() {
 				continue
 			}
 
-			if currentPacketType < 0 || len(controllers[c.State]) < currentPacketType || controllers[c.State][currentPacketType] == nil {
+			if currentPacketType < 0 || len(controllers[c.State]) < currentPacketType || currentPacketType >= len(controllers[c.State]) || controllers[c.State][currentPacketType] == nil {
 				fmt.Printf("!!! Bad Packet Type 0x%X\n", currentPacketType)
 				continue
 			}
