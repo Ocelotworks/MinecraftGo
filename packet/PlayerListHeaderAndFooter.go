@@ -8,5 +8,5 @@ type PlayerListHeaderAndFooter struct {
 }
 
 func (plhaf *PlayerListHeaderAndFooter) GetPacketId() int {
-	return constants.CBPlayerListHeaderAndFooter
+	return constants.CBTabListHeaderAndFooter
 }

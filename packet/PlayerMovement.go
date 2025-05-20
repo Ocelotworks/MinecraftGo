@@ -3,7 +3,7 @@ package packet
 import "github.com/Ocelotworks/MinecraftGo/constants"
 
 type PlayerMovement struct {
-	OnGround bool `proto:"bool"`
+	Flags byte `proto:"byte"`
 }
 
 func (pm *PlayerMovement) GetPacketId() int {

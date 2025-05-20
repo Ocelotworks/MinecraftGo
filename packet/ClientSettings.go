@@ -3,16 +3,19 @@ package packet
 import "github.com/Ocelotworks/MinecraftGo/constants"
 
 type ClientSettings struct {
-	Locale             string `proto:"string"`
-	ViewDistance       byte   `proto:"unsignedByte"`
-	ChatMode           int    `proto:"varInt"`
-	ChatColours        bool   `proto:"bool"`
-	DisplayedSkinParts byte   `proto:"unsignedByte"`
-	MainHand           int    `proto:"varInt"`
+	Locale              string `proto:"string"`
+	ViewDistance        byte   `proto:"unsignedByte"`
+	ChatMode            int    `proto:"varInt"`
+	ChatColours         bool   `proto:"bool"`
+	DisplayedSkinParts  byte   `proto:"unsignedByte"`
+	MainHand            int    `proto:"varInt"`
+	EnableTextFiltering bool   `proto:"bool"`
+	AllowServerListings bool   `proto:"bool"`
+	ParticleStatus      int    `proto:"varInt"`
 }
 
 func (cs *ClientSettings) GetPacketId() int {
-	return constants.SBClientSettings
+	return constants.SBClientInformation
 }
 
 /**

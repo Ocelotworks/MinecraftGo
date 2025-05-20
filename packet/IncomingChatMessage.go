@@ -3,7 +3,13 @@ package packet
 import "github.com/Ocelotworks/MinecraftGo/constants"
 
 type IncomingChatMessage struct {
-	Message string `proto:"string"`
+	Message      string `proto:"string"`
+	Timestamp    int64  `proto:"long"`
+	Salt         int64  `proto:"long"`
+	Signature    [256]byte
+	MessageCount int   `proto:"varInt"`
+	Acknowledged int64 // TODO: this is a Fixed BitSet?
+	Checksum     byte
 }
 
 func (icm *IncomingChatMessage) GetPacketId() int {

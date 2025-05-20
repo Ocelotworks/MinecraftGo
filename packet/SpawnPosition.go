@@ -8,7 +8,7 @@ type SpawnPosition struct {
 }
 
 func (sp *SpawnPosition) GetPacketId() int {
-	return constants.CBSpawnPosition
+	return constants.CBDefaultSpawnPosition
 }
 
 /**

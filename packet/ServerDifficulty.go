@@ -8,7 +8,7 @@ type ServerDifficulty struct {
 }
 
 func (sd *ServerDifficulty) GetPacketId() int {
-	return constants.CBServerDifficulty
+	return constants.CBChangeDifficulty
 }
 
 /**

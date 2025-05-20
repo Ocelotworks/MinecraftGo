@@ -1,4 +1,4 @@
 package constants
 
-const ProtocolVersion = 758
-const GameVersion = "1.18.2"
+const ProtocolVersion = 770
+const GameVersion = "1.21.5"

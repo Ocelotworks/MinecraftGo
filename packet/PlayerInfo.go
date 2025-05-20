@@ -23,6 +23,7 @@ type PlayerInfoUpdatePing struct {
 	Ping            int    `proto:"varInt"`
 }
 
+// TODO: this is all completely different now
 func (piap *PlayerInfoAddPlayer) GetPacketId() int {
 	return constants.CBPlayerInfo
 }

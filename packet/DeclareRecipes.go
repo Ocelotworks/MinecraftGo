@@ -1,14 +1,13 @@
 package packet
 
-import "github.com/Ocelotworks/MinecraftGo/constants"
-
+// TODO: this has changed
 type DeclareRecipes struct {
 	NumRecipes int      `proto:"varInt"`
 	Recipes    []Recipe `proto:"array"`
 }
 
 func (dr *DeclareRecipes) GetPacketId() int {
-	return constants.CBDeclareRecipes
+	return 0
 }
 
 /**

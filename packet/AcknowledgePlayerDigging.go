@@ -10,7 +10,7 @@ type AcknowledgePlayerDigging struct {
 }
 
 func (apd *AcknowledgePlayerDigging) GetPacketId() int {
-	return constants.CBAcknowledgePlayerDigging
+	return constants.CBAcknowledgeBlockChange
 }
 
 /**

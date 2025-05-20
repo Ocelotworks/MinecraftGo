@@ -7,15 +7,15 @@ import (
 )
 
 type PlayerDigging struct {
-	CurrentPacket *packetType.PlayerDigging
+	CurrentPacket *packetType.PlayerAction
 }
 
 func (pd *PlayerDigging) GetPacketStruct() packetType.Packet {
-	return &packetType.PlayerDigging{}
+	return &packetType.PlayerAction{}
 }
 
 func (pd *PlayerDigging) Init(currentPacket packetType.Packet) {
-	pd.CurrentPacket = currentPacket.(*packetType.PlayerDigging)
+	pd.CurrentPacket = currentPacket.(*packetType.PlayerAction)
 }
 
 func (pd *PlayerDigging) Handle(packet []byte, connection *Connection) {

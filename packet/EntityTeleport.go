@@ -13,7 +13,7 @@ type EntityTeleport struct {
 }
 
 func (et *EntityTeleport) GetPacketId() int {
-	return constants.CBEntityTeleport
+	return constants.CBTeleportEntity
 }
 
 /**

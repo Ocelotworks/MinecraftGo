@@ -14,7 +14,7 @@ type PlayerPositionAndLook struct {
 }
 
 func (ppal *PlayerPositionAndLook) GetPacketId() int {
-	return constants.CBPlayerPositionAndLook
+	return constants.CBSyncPlayerPosition
 }
 
 /**

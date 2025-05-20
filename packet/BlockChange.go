@@ -8,5 +8,5 @@ type BlockChange struct {
 }
 
 func (bc *BlockChange) GetPacketId() int {
-	return constants.CBBlockChange
+	return constants.CBBlockUpdate
 }

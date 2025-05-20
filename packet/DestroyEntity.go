@@ -8,7 +8,7 @@ type DestroyEntity struct {
 }
 
 func (de *DestroyEntity) GetPacketId() int {
-	return constants.CBDestroyEntities
+	return constants.CBRemoveEntities
 }
 
 /**

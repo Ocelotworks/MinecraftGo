@@ -8,15 +8,15 @@ import (
 )
 
 type EntityAction struct {
-	CurrentPacket *packetType.EntityAction
+	CurrentPacket *packetType.PlayerCommand
 }
 
 func (ea *EntityAction) GetPacketStruct() packetType.Packet {
-	return &packetType.EntityAction{}
+	return &packetType.PlayerCommand{}
 }
 
 func (ea *EntityAction) Init(currentPacket packetType.Packet) {
-	ea.CurrentPacket = currentPacket.(*packetType.EntityAction)
+	ea.CurrentPacket = currentPacket.(*packetType.PlayerCommand)
 }
 
 func (ea *EntityAction) Handle(packet []byte, connection *Connection) {

@@ -7,15 +7,15 @@ import (
 )
 
 type PlayerBlockPlacement struct {
-	CurrentPacket *packetType.PlayerBlockPlacement
+	CurrentPacket *packetType.UseItemOn
 }
 
 func (pbp *PlayerBlockPlacement) GetPacketStruct() packetType.Packet {
-	return &packetType.PlayerBlockPlacement{}
+	return &packetType.UseItemOn{}
 }
 
 func (pbp *PlayerBlockPlacement) Init(currentPacket packetType.Packet) {
-	pbp.CurrentPacket = currentPacket.(*packetType.PlayerBlockPlacement)
+	pbp.CurrentPacket = currentPacket.(*packetType.UseItemOn)
 }
 
 func (pbp *PlayerBlockPlacement) Handle(packet []byte, connection *Connection) {

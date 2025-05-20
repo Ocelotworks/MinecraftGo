@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/Ocelotworks/MinecraftGo/constants"
 	"github.com/Ocelotworks/MinecraftGo/dataTypes"
 	"math"
 	"time"
@@ -195,13 +196,15 @@ func (mc *Minecraft) PlayerJoin(connection *Connection) {
 
 	connection.SendPacket(&currentPlayersPacket)
 
+	// TODO: why is this duplicated like this?
 	for _, con := range mc.Connections {
 		if con.Player == nil || con == connection {
 			continue
 		}
-		packet := packetType.Packet(&packetType.SpawnPlayer{
+		packet := packetType.Packet(&packetType.SpawnEntity{
 			EntityID: con.Player.EntityID,
 			UUID:     con.Player.UUID,
+			Type:     constants.EntityTypePlayer,
 			X:        con.Player.X,
 			Y:        con.Player.Y,
 			Z:        con.Player.Z,
@@ -211,9 +214,10 @@ func (mc *Minecraft) PlayerJoin(connection *Connection) {
 		connection.SendPacket(&packet)
 	}
 
-	packet := packetType.Packet(&packetType.SpawnPlayer{
+	packet := packetType.Packet(&packetType.SpawnEntity{
 		EntityID: connection.Player.EntityID,
 		UUID:     connection.Player.UUID,
+		Type:     constants.EntityTypePlayer,
 		X:        connection.Player.X,
 		Y:        connection.Player.Y,
 		Z:        connection.Player.Z,

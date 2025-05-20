@@ -7,7 +7,7 @@ type TeleportConfirm struct {
 }
 
 func (tc *TeleportConfirm) GetPacketId() int {
-	return constants.SBTeleportConfirm
+	return constants.SBConfirmTeleportation
 }
 
 /**

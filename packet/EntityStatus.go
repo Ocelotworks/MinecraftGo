@@ -8,5 +8,5 @@ type EntityStatus struct {
 }
 
 func (es *EntityStatus) GetPacketId() int {
-	return constants.CBEntityStatus
+	return constants.CBEntityEvent
 }

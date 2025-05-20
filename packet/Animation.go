@@ -7,5 +7,5 @@ type Animation struct {
 }
 
 func (a *Animation) GetPacketId() int {
-	return constants.SBAnimation
+	return constants.SBSwingArm
 }

@@ -8,7 +8,7 @@ type EntityHeadLook struct {
 }
 
 func (ehl *EntityHeadLook) GetPacketId() int {
-	return constants.CBEntityHeadLook
+	return constants.CBSetHeadRotation
 }
 
 /**
