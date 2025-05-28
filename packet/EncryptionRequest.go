@@ -1,11 +1,12 @@
 package packet
 
 type EncryptionRequest struct {
-	ServerID          string `proto:"string"`
-	PublicKeyLength   int    `proto:"varInt"`
-	PublicKey         []byte `proto:"raw"`
-	VerifyTokenLength int    `proto:"varInt"`
-	VerifyToken       []byte `proto:"raw"`
+	ServerID           string `proto:"string"`
+	PublicKeyLength    int    `proto:"varInt"`
+	PublicKey          []byte `proto:"raw"`
+	VerifyTokenLength  int    `proto:"varInt"`
+	VerifyToken        []byte `proto:"raw"`
+	ShouldAuthenticate bool   `proto:"bool"`
 }
 
 func (er *EncryptionRequest) GetPacketId() int {

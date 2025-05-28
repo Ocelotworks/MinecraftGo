@@ -1,6 +1,28 @@
 package constants
 
 const (
+	CBLoginSuccess = 0x02
+
+	// CONFIGURATION
+	CBCookieRequestConfiguration       = 0x00
+	CBPluginMessageConfiguration       = 0x01
+	CBDisconnectConfiguration          = 0x02
+	CBFinishConfiguration              = 0x03
+	CBKeepaliveConfiguration           = 0x04
+	CBPingConfiguration                = 0x05
+	CBResetChatConfiguration           = 0x06
+	CBRegistryDataConfiguration        = 0x07
+	CBRemoveResourcePackConfiguration  = 0x08
+	CBAddResourcePackConfiguration     = 0x09
+	CBStoreCookieConfiguration         = 0x0A
+	CBTransferConfiguration            = 0x0B
+	CBFeatureFlagsConfiguration        = 0x0C
+	CBUpdateTagsConfiguration          = 0x0D
+	CBKnownPacksConfiguration          = 0x0E
+	CBCustomReportDetailsConfiguration = 0x0F
+	CBServerLinksConfiguration         = 0x10
+
+	// PLAY
 	CBBundleDelimiter            = 0x00
 	CBSpawnEntity                = 0x01
 	CBEntityAnimation            = 0x02
@@ -134,6 +156,20 @@ const (
 )
 
 const (
+	SBLoginStart              = 0x00
+	SBLoginEncryptionResponse = 0x01
+	SBLoginPluginResponse     = 0x02
+	SBLoginAcknowledged       = 0x03
+
+	SBClientInformationConfiguration    = 0x00
+	SBCookieResponseConfiguration       = 0x01
+	SBPluginMessageConfiguration        = 0x02
+	SBAcknowledgeFinishConfiguration    = 0x03
+	SBKeepaliveConfiguration            = 0x04
+	SBPongConfiguration                 = 0x05
+	SBResourcePackResponseConfiguration = 0x06
+	SBKnownPacksConfiguration           = 0x07
+
 	SBConfirmTeleportation        = 0x00
 	SBQueryBlockEntityTag         = 0x01
 	SBBundleItemSelected          = 0x02

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Ocelotworks/MinecraftGo/constants"
-	"github.com/Ocelotworks/MinecraftGo/dataTypes"
 	"math"
 	"time"
 
@@ -37,7 +36,7 @@ func CreateMinecraft() *Minecraft {
 		},
 		MaxPlayers:           255,
 		ConnectedPlayers:     0,
-		EnableEncryption:     true,
+		EnableEncryption:     false,
 		CompressionThreshold: -1,
 		GlobalEntityCounter:  1,
 		DataStore:            NewDataStore(),
@@ -360,50 +359,16 @@ func (mc *Minecraft) StartPlayerJoin(connection *Connection) {
 	returnPacket := packetType.Packet(&packetType.LoginSuccess{
 		UUID:     stringUUID.Bytes(),
 		Username: connection.Player.Username,
+		Properties: []packetType.LoginProperty{
+			{
+				Key:   "test",
+				Value: "test2",
+			},
+		},
 	})
 
 	connection.SendPacket(&returnPacket)
 
-	connection.State = PLAY
-
-	//os.WriteFile("ours2.nbt", compound.Write(), 0644)
-	//os.WriteFile("theirs2.nbt",, 0644)
-
-	joinGame := packetType.Packet(&packetType.JoinGame{
-		EntityID:            connection.Player.EntityID,
-		IsHardcore:          false,
-		Gamemode:            1,
-		PreviousGamemode:    1,
-		WorldNames:          []string{"minecraft:overworld"}, // TODO: this but properly
-		DimensionCodec:      *connection.Minecraft.DataStore.Codec,
-		Dimension:           dataTypes.DimensionOuterCompound{Inner: connection.Minecraft.DataStore.Codec.Inner.DimensionType.Value[0].Element},
-		DimensionName:       "minecraft:overworld",
-		HashedSeed:          71495747907944700,
-		MaxPlayers:          connection.Minecraft.MaxPlayers,
-		ViewDistance:        32,
-		SimulationDistance:  32,
-		ReducedDebugInfo:    false,
-		EnableRespawnScreen: true,
-		IsDebug:             false,
-		IsFlat:              false,
-	})
-
-	connection.SendPacket(&joinGame)
-
-	pluginMessage := packetType.Packet(&packetType.PluginMessage{
-		IsServer:   false,
-		Identifier: "minecraft:brand",
-		ByteArray:  dataTypes.WriteString("BigPMC"),
-	})
-
-	connection.SendPacket(&pluginMessage)
-
-	difficulty := packetType.Packet(&packetType.ServerDifficulty{
-		Difficulty:       0,
-		DifficultyLocked: false,
-	})
-
-	connection.SendPacket(&difficulty)
 }
 
 func (mc *Minecraft) SendMessage(messageType byte, message entity.ChatMessage) {

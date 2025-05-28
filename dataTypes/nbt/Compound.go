@@ -54,10 +54,13 @@ func (c *Compound) Write() []byte {
 	output := make([]byte, 0)
 	for name, item := range c.Data {
 		output = append(output, byte(item.GetType()))
-		nameLength := make([]byte, 2)
-		binary.BigEndian.PutUint16(nameLength, uint16(len(name)))
-		output = append(output, nameLength...)
-		output = append(output, name...)
+		if name != "" {
+			nameLength := make([]byte, 2)
+			binary.BigEndian.PutUint16(nameLength, uint16(len(name)))
+			output = append(output, nameLength...)
+			output = append(output, name...)
+			// TODO: this should be only enabled for non-network NBT (how to determine?)
+		}
 
 		output = append(output, item.Write()...)
 	}

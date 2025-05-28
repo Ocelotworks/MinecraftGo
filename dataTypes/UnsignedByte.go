@@ -12,3 +12,10 @@ func ReadVarIntByteArray(buf []byte) (interface{}, int) {
 	arrayLength, cursor := ReadVarInt(buf)
 	return buf[cursor : arrayLength.(int)+cursor], arrayLength.(int) + cursor
 }
+
+func WriteVarIntByteArray(input interface{}) []byte {
+	byteArray := input.([]byte)
+	b := WriteVarInt(len(byteArray))
+	b = append(b, byteArray...)
+	return b
+}

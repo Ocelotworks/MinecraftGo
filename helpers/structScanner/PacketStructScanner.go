@@ -31,6 +31,9 @@ func (pss *PacketStructScanner) StructScan(packet *packetType.Packet, buf []byte
 			fmt.Println("Cursor overrun")
 			continue
 		}
+
+		fmt.Println("Reading ", tag, field.Name)
+
 		val, end := dataReadMap[tag](buf[cursor:])
 
 		cursor += end
@@ -61,6 +64,7 @@ func (pss *PacketStructScanner) UnmarshalData(input interface{}) []byte {
 
 		var segment []byte
 
+		// TODO: why is this here?
 		if tag == "playerArray" {
 			playerData := val.([]entity.Player)
 			segment = dataTypes.WriteVarInt(len(playerData))

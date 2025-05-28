@@ -81,7 +81,7 @@ func IDFromType(typeName string) byte {
 		return 9
 	}
 
-	fmt.Println("Unknown type", typeName)
+	fmt.Println("Unknown type ", typeName)
 	return 10
 }
 
@@ -113,7 +113,7 @@ func NewValue(id byte) NBTValue {
 		return &LongArray{}
 	}
 
-	fmt.Println("Unknown type", id)
+	fmt.Println("Unknown type (NewValue) ", id)
 
 	return nil
 }

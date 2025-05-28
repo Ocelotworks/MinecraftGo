@@ -4,7 +4,7 @@ type Handshaking struct {
 	ProtocolVersion int    `proto:"varInt"`
 	ServerAddress   string `proto:"string"`
 	ServerPort      uint16 `proto:"unsignedShort"`
-	NextState       int    `proto:"varInt"`
+	Intent          int    `proto:"varInt"`
 }
 
 func (h *Handshaking) GetPacketId() int {

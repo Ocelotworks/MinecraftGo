@@ -20,7 +20,7 @@ func (h *Handshaking) Init(currentPacket packetType.Packet) {
 
 func (h *Handshaking) Handle(packet []byte, connection *Connection) {
 	fmt.Printf("Connection to %s:%d Protocol Version %d\n", h.CurrentPacket.ServerAddress, h.CurrentPacket.ServerPort, h.CurrentPacket.ProtocolVersion)
-	fmt.Println("Next State", h.CurrentPacket.NextState)
-	connection.State = State(h.CurrentPacket.NextState)
+	fmt.Println("Next State", h.CurrentPacket.Intent)
+	connection.State = State(h.CurrentPacket.Intent)
 
 }

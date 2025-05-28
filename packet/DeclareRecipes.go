@@ -2,8 +2,8 @@ package packet
 
 // TODO: this has changed
 type DeclareRecipes struct {
-	NumRecipes int      `proto:"varInt"`
-	Recipes    []Recipe `proto:"array"`
+	NumRecipes int `proto:"varInt"`
+	Recipes    []Recipe
 }
 
 func (dr *DeclareRecipes) GetPacketId() int {

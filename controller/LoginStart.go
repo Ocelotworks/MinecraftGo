@@ -60,11 +60,12 @@ func (ls *LoginStart) Handle(packet []byte, connection *Connection) {
 		rand.Read(connection.VerifyToken)
 
 		encryptionPacket := packetType.Packet(&packetType.EncryptionRequest{
-			ServerID:          "",
-			PublicKeyLength:   len(publicKey),
-			PublicKey:         publicKey,
-			VerifyTokenLength: len(connection.VerifyToken),
-			VerifyToken:       connection.VerifyToken,
+			ServerID:           "",
+			PublicKeyLength:    len(publicKey),
+			PublicKey:          publicKey,
+			VerifyTokenLength:  len(connection.VerifyToken),
+			VerifyToken:        connection.VerifyToken,
+			ShouldAuthenticate: true,
 		})
 
 		connection.SendPacket(&encryptionPacket)

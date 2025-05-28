@@ -5,10 +5,12 @@ import (
 	"compress/zlib"
 	"crypto/cipher"
 	"crypto/rsa"
+	"encoding/hex"
 	"fmt"
 	"github.com/Ocelotworks/MinecraftGo/constants"
 	"io"
 	"net"
+	"runtime/debug"
 	"time"
 
 	"github.com/Ocelotworks/MinecraftGo/dataTypes"
@@ -37,10 +39,12 @@ type Connection struct {
 type State int
 
 const (
-	HANDSHAKING State = 0
-	STATUS      State = 1
-	LOGIN       State = 2
-	PLAY        State = 3
+	HANDSHAKING   State = 0
+	STATUS        State = 1
+	LOGIN         State = 2
+	TRANSFER      State = 3
+	CONFIGURATION State = 4
+	PLAY          State = 5
 )
 
 var controllers = map[State][]Packet{
@@ -52,8 +56,16 @@ var controllers = map[State][]Packet{
 		0x01: &StatusPing{},
 	},
 	LOGIN: {
-		0x00: &LoginStart{},
-		0x01: &EncryptionResponse{},
+		constants.SBLoginStart:              &LoginStart{},
+		constants.SBLoginEncryptionResponse: &EncryptionResponse{},
+		constants.SBLoginPluginResponse:     &LoginPluginResponse{},
+		constants.SBLoginAcknowledged:       &LoginAcknowledged{},
+	},
+	CONFIGURATION: {
+		constants.SBClientInformationConfiguration: &ClientInformation{},
+		constants.SBPluginMessageConfiguration:     &PluginMessage{},
+		constants.SBKnownPacksConfiguration:        &KnownPacks{},
+		constants.SBAcknowledgeFinishConfiguration: &AcknowledgeFinishConfiguration{},
 	},
 	PLAY: {
 		constants.SBConfirmTeleportation:      &TeleportConfirm{},
@@ -188,9 +200,12 @@ func (c *Connection) Handle() {
 			}
 
 			if currentPacketType < 0 || len(controllers[c.State]) < currentPacketType || currentPacketType >= len(controllers[c.State]) || controllers[c.State][currentPacketType] == nil {
-				fmt.Printf("!!! Bad Packet Type 0x%X\n", currentPacketType)
+				fmt.Printf("!!! Serverbound packet of type 0x%X has no handler in state %d\n", currentPacketType, c.State)
 				continue
 			}
+
+			fmt.Println("Current state ", c.State)
+			fmt.Println("Incoming packet type ", currentPacketType)
 
 			packetController := controllers[c.State][currentPacketType]
 
@@ -203,8 +218,8 @@ func (c *Connection) Handle() {
 
 			packetBuffer := decryptedBuf[cursor:]
 
-			//fmt.Println(">>>INCOMING<<<")
-			//fmt.Println(hex.Dump(packetBuffer))
+			fmt.Println(">>>INCOMING<<<")
+			fmt.Println(hex.Dump(packetBuffer))
 
 			packetStructScanner.StructScan(&packet, packetBuffer)
 
@@ -216,7 +231,8 @@ func (c *Connection) Handle() {
 
 func (c *Connection) HandleError() {
 	if r := recover(); r != nil {
-		fmt.Println(r)
+		fmt.Println("Connection recovery:", r)
+		debug.PrintStack()
 	}
 	_ = c.Conn.Close()
 }
@@ -225,7 +241,7 @@ func (c *Connection) SendPacket(packet *packetType.Packet) error {
 	var payload []byte
 	packetID := byte((*packet).GetPacketId())
 	packetStructScanner := structScanner.PacketStructScanner{}
-	// fmt.Printf("Sending packet 0x%X\n", packetID)
+	fmt.Printf("Sending packet 0x%X\n", packetID)
 
 	if c.EnableCompression {
 		uncompressedPayload := append([]byte{packetID}, packetStructScanner.UnmarshalData(*packet)...)
@@ -253,8 +269,8 @@ func (c *Connection) SendPacket(packet *packetType.Packet) error {
 	}
 
 	//if len(payload) < 1024 {
-	//fmt.Println(">>>OUTGOING<<<")
-	//fmt.Println(hex.Dump(payload))
+	fmt.Println(">>>OUTGOING<<<")
+	fmt.Println(hex.Dump(payload))
 	///}
 
 	// fmt.Println("Writing payload")
