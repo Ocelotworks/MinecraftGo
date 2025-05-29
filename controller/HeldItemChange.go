@@ -14,7 +14,7 @@ func (hic *HeldItemChange) GetPacketStruct() packetType.Packet {
 	return &packetType.HeldItemChange{}
 }
 
-func (hic *HeldItemChange) Init(currentPacket packetType.Packet) {
+func (hic *HeldItemChange) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	hic.CurrentPacket = currentPacket.(*packetType.HeldItemChange)
 }
 

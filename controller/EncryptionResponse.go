@@ -25,7 +25,7 @@ func (er *EncryptionResponse) GetPacketStruct() packetType.Packet {
 	return &packetType.EncryptionResponse{}
 }
 
-func (er *EncryptionResponse) Init(currentPacket packetType.Packet) {
+func (er *EncryptionResponse) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	er.CurrentPacket = currentPacket.(*packetType.EncryptionResponse)
 }
 

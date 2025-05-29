@@ -5,7 +5,8 @@ import (
 )
 
 type Compound struct {
-	Data map[string]NBTValue
+	Data           map[string]NBTValue
+	IsRootCompound bool
 }
 
 func NewCompound(compound map[string]NBTValue) Compound {
@@ -54,7 +55,7 @@ func (c *Compound) Write() []byte {
 	output := make([]byte, 0)
 	for name, item := range c.Data {
 		output = append(output, byte(item.GetType()))
-		if name != "" {
+		if name != "**BLANK**" {
 			nameLength := make([]byte, 2)
 			binary.BigEndian.PutUint16(nameLength, uint16(len(name)))
 			output = append(output, nameLength...)
@@ -66,9 +67,17 @@ func (c *Compound) Write() []byte {
 	}
 
 	// Tag End
-	output = append(output, 0x00)
+	if !c.IsRootCompound {
+		output = append(output, 0x00)
+	}
 
 	//fmt.Println(hex.Dump(output))
 
 	return output
+}
+
+func NetworkWrapperCompound(inner NBTValue) Compound {
+	return Compound{Data: map[string]NBTValue{
+		"**BLANK**": inner,
+	}, IsRootCompound: true}
 }

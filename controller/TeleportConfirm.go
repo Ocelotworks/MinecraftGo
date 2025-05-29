@@ -14,7 +14,7 @@ func (tc *TeleportConfirm) GetPacketStruct() packetType.Packet {
 	return &packetType.TeleportConfirm{}
 }
 
-func (tc *TeleportConfirm) Init(currentPacket packetType.Packet) {
+func (tc *TeleportConfirm) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	tc.CurrentPacket = currentPacket.(*packetType.TeleportConfirm)
 }
 

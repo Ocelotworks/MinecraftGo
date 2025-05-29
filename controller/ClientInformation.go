@@ -13,7 +13,7 @@ func (ci *ClientInformation) GetPacketStruct() packetType.Packet {
 	return &packetType.ClientInformation{}
 }
 
-func (ci *ClientInformation) Init(currentPacket packetType.Packet) {
+func (ci *ClientInformation) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	ci.CurrentPacket = currentPacket.(*packetType.ClientInformation)
 }
 

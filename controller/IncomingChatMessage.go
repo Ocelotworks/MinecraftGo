@@ -13,7 +13,7 @@ func (icm *IncomingChatMessage) GetPacketStruct() packetType.Packet {
 	return &packetType.IncomingChatMessage{}
 }
 
-func (icm *IncomingChatMessage) Init(currentPacket packetType.Packet) {
+func (icm *IncomingChatMessage) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	icm.CurrentPacket = currentPacket.(*packetType.IncomingChatMessage)
 }
 

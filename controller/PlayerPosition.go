@@ -12,7 +12,7 @@ func (pp *PlayerPosition) GetPacketStruct() packetType.Packet {
 	return &packetType.PlayerPosition{}
 }
 
-func (pp *PlayerPosition) Init(currentPacket packetType.Packet) {
+func (pp *PlayerPosition) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	pp.CurrentPacket = currentPacket.(*packetType.PlayerPosition)
 }
 

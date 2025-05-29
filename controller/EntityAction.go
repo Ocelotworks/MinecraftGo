@@ -15,7 +15,7 @@ func (ea *EntityAction) GetPacketStruct() packetType.Packet {
 	return &packetType.PlayerCommand{}
 }
 
-func (ea *EntityAction) Init(currentPacket packetType.Packet) {
+func (ea *EntityAction) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	ea.CurrentPacket = currentPacket.(*packetType.PlayerCommand)
 }
 

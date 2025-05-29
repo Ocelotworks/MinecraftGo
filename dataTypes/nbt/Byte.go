@@ -1,5 +1,7 @@
 package nbt
 
+import "fmt"
+
 type Byte struct {
 	Data byte
 }
@@ -13,7 +15,23 @@ func (b *Byte) GetValue() interface{} {
 }
 
 func (b *Byte) SetValue(i interface{}) {
-	b.Data = i.(byte)
+	asByte, ok := i.(byte)
+	if ok {
+		b.Data = asByte
+		return
+	}
+
+	asBool, ok := i.(bool)
+	if ok {
+		if asBool {
+			b.Data = 1
+		} else {
+			b.Data = 0
+		}
+		return
+	}
+
+	panic(fmt.Sprintf("byte is neither byte nor bool: %T", i))
 }
 
 func (b *Byte) GetType() int {

@@ -14,7 +14,7 @@ func (sp *StatusPing) GetPacketStruct() packetType.Packet {
 	return &packetType.StatusPing{}
 }
 
-func (sp *StatusPing) Init(currentPacket packetType.Packet) {
+func (sp *StatusPing) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	sp.CurrentPacket = currentPacket.(*packetType.StatusPing)
 }
 

@@ -14,7 +14,7 @@ func (pm *PluginMessage) GetPacketStruct() packetType.Packet {
 	return &packetType.PluginMessage{}
 }
 
-func (pm *PluginMessage) Init(currentPacket packetType.Packet) {
+func (pm *PluginMessage) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	pm.CurrentPacket = currentPacket.(*packetType.PluginMessage)
 }
 

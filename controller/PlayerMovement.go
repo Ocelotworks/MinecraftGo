@@ -14,7 +14,7 @@ func (pm *PlayerMovement) GetPacketStruct() packetType.Packet {
 	return &packetType.PlayerMovement{}
 }
 
-func (pm *PlayerMovement) Init(currentPacket packetType.Packet) {
+func (pm *PlayerMovement) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	pm.CurrentPacket = currentPacket.(*packetType.PlayerMovement)
 }
 

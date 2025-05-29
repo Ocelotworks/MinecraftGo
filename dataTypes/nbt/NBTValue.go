@@ -50,6 +50,8 @@ func IDFromType(typeName string) byte {
 	switch typeName {
 	case "uint8":
 		fallthrough
+	case "bool":
+		fallthrough
 	case "byte":
 		return 1
 	case "int16":
@@ -66,10 +68,13 @@ func IDFromType(typeName string) byte {
 		return 7
 	case "string":
 		return 8
-	// How to lists :think:
-	//case "list":
-	//    return 9
+	case "slice":
+		return 9
 	case "struct":
+		fallthrough
+	case "interface":
+		fallthrough
+	case "map":
 		return 10
 	case "[]int32":
 		return 11

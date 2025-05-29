@@ -16,7 +16,7 @@ func (cs *ClientSettings) GetPacketStruct() packetType.Packet {
 	return &packetType.ClientSettings{}
 }
 
-func (cs *ClientSettings) Init(currentPacket packetType.Packet) {
+func (cs *ClientSettings) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	cs.CurrentPacket = currentPacket.(*packetType.ClientSettings)
 }
 

@@ -10,5 +10,5 @@ import (
 type Packet interface {
 	GetPacketStruct() packetType.Packet
 	Handle(packet []byte, connection *Connection)
-	Init(packetType.Packet)
+	Init(packetType.Packet, *Minecraft)
 }

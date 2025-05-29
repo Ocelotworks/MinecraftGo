@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Ocelotworks/MinecraftGo/constants"
+	"github.com/Ocelotworks/MinecraftGo/dataTypes/nbt"
+	"github.com/Ocelotworks/MinecraftGo/helpers"
 	"math"
 	"time"
 
@@ -23,6 +25,7 @@ type Minecraft struct {
 	WorldAge             int64
 	TimeOfDay            int64
 	DataStore            *DataStore
+	Registries           map[string]map[string]nbt.NBTValue
 }
 
 func CreateMinecraft() *Minecraft {
@@ -40,7 +43,10 @@ func CreateMinecraft() *Minecraft {
 		CompressionThreshold: -1,
 		GlobalEntityCounter:  1,
 		DataStore:            NewDataStore(),
+		Registries:           make(map[string]map[string]nbt.NBTValue),
 	}
+
+	mc.LoadRegistries()
 
 	//go mc.timeTracker()
 
@@ -419,5 +425,22 @@ func (mc *Minecraft) timeTracker() {
 		})
 
 		mc.SendToAllInPlay(&packet)
+	}
+}
+
+func (mc *Minecraft) LoadRegistries() {
+	fmt.Println("Loading registries...")
+	registryData := helpers.LoadAllRegistries()
+	for registryName, registryEntries := range registryData {
+
+		_, ok := mc.Registries[registryName]
+		if !ok {
+			mc.Registries[registryName] = make(map[string]nbt.NBTValue)
+		}
+
+		for entryFile, entryData := range registryEntries {
+			nbtValue, _ := nbt.JSONToNBT([]byte(entryData))
+			mc.Registries[registryName][entryFile] = &nbtValue
+		}
 	}
 }

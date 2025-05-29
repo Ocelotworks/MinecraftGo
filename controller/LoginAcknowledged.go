@@ -1,19 +1,23 @@
 package controller
 
 import (
+	"github.com/Ocelotworks/MinecraftGo/dataTypes"
+	"github.com/Ocelotworks/MinecraftGo/dataTypes/nbt"
 	packetType "github.com/Ocelotworks/MinecraftGo/packet"
 )
 
 type LoginAcknowledged struct {
 	CurrentPacket *packetType.LoginAcknowledged
+	Minecraft     *Minecraft
 }
 
 func (lpr *LoginAcknowledged) GetPacketStruct() packetType.Packet {
 	return &packetType.LoginAcknowledged{}
 }
 
-func (lpr *LoginAcknowledged) Init(currentPacket packetType.Packet) {
+func (lpr *LoginAcknowledged) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	lpr.CurrentPacket = currentPacket.(*packetType.LoginAcknowledged)
+	lpr.Minecraft = minecraft
 }
 
 func (lpr *LoginAcknowledged) Handle(packet []byte, connection *Connection) {
@@ -28,45 +32,27 @@ func (lpr *LoginAcknowledged) Handle(packet []byte, connection *Connection) {
 
 	connection.SendPacket(&knownPacks)
 
-	registryData := packetType.Packet(&packetType.RegistryData{
-		RegistryID:  "minecraft:dimension_type",
-		EntryLength: 1,
-		Identifier:  "minecraft:overworld",
-		NBTData: &packetType.DimensionTypeNBT{
-			DimensionType: packetType.DimensionType{
-				HasSkylight:                 1,
-				HasCeiling:                  0,
-				UltraWarm:                   0,
-				Natural:                     1,
-				CoordinateScale:             1,
-				BedWorks:                    1,
-				RespawnAnchorWorks:          0,
-				MinY:                        0,
-				Height:                      256,
-				LogicalHeight:               250,
-				Infiniburn:                  "#",
-				Effects:                     "minecraft:overworld",
-				AmbientLight:                0,
-				PiglinSafe:                  0,
-				HasRaids:                    1,
-				MonsterSpawnLightLevel:      0,
-				MonsterSpawnBlockLightLimit: 0,
-			},
-		},
-	})
+	for registryName, registryEntries := range lpr.Minecraft.Registries {
 
-	// TODO:
-	// 		minecraft:root/minecraft:cat_variant: Registry must be non-empty: minecraft:cat_variant
-	//		minecraft:root/minecraft:chicken_variant: Registry must be non-empty: minecraft:chicken_variant
-	//		minecraft:root/minecraft:cow_variant: Registry must be non-empty: minecraft:cow_variant
-	//		minecraft:root/minecraft:frog_variant: Registry must be non-empty: minecraft:frog_variant
-	//		minecraft:root/minecraft:painting_variant: Registry must be non-empty: minecraft:painting_variant
-	//		minecraft:root/minecraft:pig_variant: Registry must be non-empty: minecraft:pig_variant
-	//		minecraft:root/minecraft:wolf_sound_variant: Registry must be non-empty: minecraft:wolf_sound_variant
-	//		minecraft:root/minecraft:wolf_variant: Registry must be non-empty: minecraft:wolf_variant
-	// https://mcasset.cloud/1.21.5-pre2/data/minecraft
+		registryDataPacket := packetType.RegistryData{
+			RegistryID:  registryName,
+			EntryLength: len(registryEntries),
+			NBTBytes:    make([]byte, 0),
+		}
 
-	connection.SendPacket(&registryData)
+		for entryName, entryData := range registryEntries {
+			registryDataPacket.NBTBytes = append(registryDataPacket.NBTBytes, dataTypes.WriteString(entryName)...)
+			registryDataPacket.NBTBytes = append(registryDataPacket.NBTBytes, dataTypes.WriteBoolean(true)...)
+			networkWrappedEntry := nbt.NetworkWrapperCompound(entryData)
+			actualNbtBytes := networkWrappedEntry.Write()
+
+			registryDataPacket.NBTBytes = append(registryDataPacket.NBTBytes, actualNbtBytes...)
+		}
+
+		completePacket := packetType.Packet(&registryDataPacket)
+
+		connection.SendPacket(&completePacket)
+	}
 
 	finishConfiguration := packetType.Packet(&packetType.FinishConfiguration{})
 	connection.SendPacket(&finishConfiguration)

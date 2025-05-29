@@ -18,7 +18,7 @@ func (sr *StatusRequest) GetPacketStruct() packetType.Packet {
 	return &packetType.StatusRequest{}
 }
 
-func (sr *StatusRequest) Init(currentPacket packetType.Packet) {
+func (sr *StatusRequest) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	sr.CurrentPacket = currentPacket.(*packetType.StatusRequest)
 }
 

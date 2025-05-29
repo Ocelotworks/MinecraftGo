@@ -18,7 +18,7 @@ func (ls *LoginStart) GetPacketStruct() packetType.Packet {
 	return &packetType.LoginStart{}
 }
 
-func (ls *LoginStart) Init(currentPacket packetType.Packet) {
+func (ls *LoginStart) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	ls.CurrentPacket = currentPacket.(*packetType.LoginStart)
 }
 

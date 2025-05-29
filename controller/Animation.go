@@ -14,7 +14,7 @@ func (a *Animation) GetPacketStruct() packetType.Packet {
 	return &packetType.Animation{}
 }
 
-func (a *Animation) Init(currentPacket packetType.Packet) {
+func (a *Animation) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	a.CurrentPacket = currentPacket.(*packetType.Animation)
 }
 

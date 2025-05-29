@@ -13,7 +13,7 @@ func (lpr *AcknowledgeFinishConfiguration) GetPacketStruct() packetType.Packet {
 	return &packetType.AcknowledgeFinishConfiguration{}
 }
 
-func (lpr *AcknowledgeFinishConfiguration) Init(currentPacket packetType.Packet) {
+func (lpr *AcknowledgeFinishConfiguration) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	lpr.CurrentPacket = currentPacket.(*packetType.AcknowledgeFinishConfiguration)
 }
 

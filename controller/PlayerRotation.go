@@ -10,7 +10,7 @@ func (pr *PlayerRotation) GetPacketStruct() packetType.Packet {
 	return &packetType.PlayerRotation{}
 }
 
-func (pr *PlayerRotation) Init(currentPacket packetType.Packet) {
+func (pr *PlayerRotation) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	pr.CurrentPacket = currentPacket.(*packetType.PlayerRotation)
 }
 

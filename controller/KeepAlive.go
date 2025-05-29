@@ -15,7 +15,7 @@ func (ka *KeepAlive) GetPacketStruct() packetType.Packet {
 	return &packetType.KeepAlive{}
 }
 
-func (ka *KeepAlive) Init(currentPacket packetType.Packet) {
+func (ka *KeepAlive) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	ka.CurrentPacket = currentPacket.(*packetType.KeepAlive)
 }
 

@@ -10,7 +10,7 @@ func (ppar *PlayerPositionAndRotation) GetPacketStruct() packetType.Packet {
 	return &packetType.PlayerPositionAndRotation{}
 }
 
-func (ppar *PlayerPositionAndRotation) Init(currentPacket packetType.Packet) {
+func (ppar *PlayerPositionAndRotation) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	ppar.CurrentPacket = currentPacket.(*packetType.PlayerPositionAndRotation)
 }
 

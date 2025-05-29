@@ -14,7 +14,7 @@ func (h *Handshaking) GetPacketStruct() packetType.Packet {
 	return &packetType.Handshaking{}
 }
 
-func (h *Handshaking) Init(currentPacket packetType.Packet) {
+func (h *Handshaking) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	h.CurrentPacket = currentPacket.(*packetType.Handshaking)
 }
 

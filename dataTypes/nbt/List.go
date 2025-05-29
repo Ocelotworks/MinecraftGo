@@ -42,6 +42,9 @@ func (l *List) Read(buf []byte) int {
 }
 
 func (l *List) Write() []byte {
+	if l.Type == 0 && len(l.Data) > 0 {
+		panic("List with no type set!")
+	}
 	output := []byte{l.Type}
 	length := make([]byte, 4)
 	binary.BigEndian.PutUint32(length, uint32(len(l.Data)))

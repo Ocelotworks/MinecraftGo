@@ -14,7 +14,7 @@ func (pbp *PlayerBlockPlacement) GetPacketStruct() packetType.Packet {
 	return &packetType.UseItemOn{}
 }
 
-func (pbp *PlayerBlockPlacement) Init(currentPacket packetType.Packet) {
+func (pbp *PlayerBlockPlacement) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	pbp.CurrentPacket = currentPacket.(*packetType.UseItemOn)
 }
 

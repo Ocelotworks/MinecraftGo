@@ -223,7 +223,7 @@ func (c *Connection) Handle() {
 
 			packetStructScanner.StructScan(&packet, packetBuffer)
 
-			packetController.Init(packet)
+			packetController.Init(packet, c.Minecraft)
 			packetController.Handle(decryptedBuf, c)
 		}
 	}

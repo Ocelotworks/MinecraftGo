@@ -14,7 +14,7 @@ func (pd *PlayerDigging) GetPacketStruct() packetType.Packet {
 	return &packetType.PlayerAction{}
 }
 
-func (pd *PlayerDigging) Init(currentPacket packetType.Packet) {
+func (pd *PlayerDigging) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	pd.CurrentPacket = currentPacket.(*packetType.PlayerAction)
 }
 

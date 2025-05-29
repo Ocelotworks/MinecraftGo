@@ -13,7 +13,7 @@ func (a *KnownPacks) GetPacketStruct() packetType.Packet {
 	return &packetType.KnownPacks{}
 }
 
-func (a *KnownPacks) Init(currentPacket packetType.Packet) {
+func (a *KnownPacks) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	a.CurrentPacket = currentPacket.(*packetType.KnownPacks)
 }
 

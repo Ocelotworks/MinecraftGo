@@ -13,7 +13,7 @@ func (lpr *LoginPluginResponse) GetPacketStruct() packetType.Packet {
 	return &packetType.IncomingChatMessage{}
 }
 
-func (lpr *LoginPluginResponse) Init(currentPacket packetType.Packet) {
+func (lpr *LoginPluginResponse) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	lpr.CurrentPacket = currentPacket.(*packetType.LoginPluginResponse)
 }
 

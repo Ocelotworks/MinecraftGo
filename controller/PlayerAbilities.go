@@ -10,7 +10,7 @@ func (pa *PlayerAbilities) GetPacketStruct() packetType.Packet {
 	return &packetType.ServerPlayerAbilities{}
 }
 
-func (pa *PlayerAbilities) Init(currentPacket packetType.Packet) {
+func (pa *PlayerAbilities) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	pa.CurrentPacket = currentPacket.(*packetType.ServerPlayerAbilities)
 }
 
