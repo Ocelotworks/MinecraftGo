@@ -1,8 +1,10 @@
 package dataTypes
 
 import (
+	"encoding/hex"
 	"fmt"
 	"github.com/Ocelotworks/MinecraftGo/entity"
+	"log"
 	"reflect"
 )
 
@@ -18,39 +20,82 @@ func WriteNetChunk(chunk *RegionChunk, blockData map[string]entity.BlockData) []
 
 		// Block count
 		if dataSize > 0 {
+			fmt.Println("dataSize > 0, + ", int16((dataSize*64)/paletteSize))
 			output = append(output, WriteShort(int16((dataSize*64)/paletteSize))...)
 		} else {
+			fmt.Println("dataSize <= 0, ", WriteShort(int16(0)))
 			// fmt.Println("Empty! chunk")
 			output = append(output, WriteShort(int16(0))...)
 		}
 
+		// Block Palette
 		output = append(output, WriteBlockPalette(section, bitsPerBlock, blockData)...)
-		output = append(output, WriteVarInt(dataSize)...)
+
+		// Block Data
 		for _, varInt := range section.BlockStates.Data {
 			output = append(output, WriteLong(varInt)...)
 		}
 
-		// fake biome data for now
-		output = append(output, 0)                 // bits per entry
-		output = append(output, WriteVarInt(0)...) // Biome
-		output = append(output, WriteVarInt(0)...) // data length
-		//postLen := len(output)
-		//fmt.Printf("bpb=%d paletteSize=%d dataSize=%d preLen=%d postLen=%d sectionSize=%d\n", bitsPerBlock, paletteSize, dataSize, preLen, postLen, postLen-preLen)
-		//output = append(output, WriteLongArray(make([]int64, 6))...)
-	}
+		output = append(output, WriteBiomePalette(section, bitsPerBlock, blockData)...)
 
-	//fmt.Println(hex.Dump(output))
+		for _, varInt := range section.Biomes.Data {
+			output = append(output, WriteLong(varInt)...)
+		}
+
+		fmt.Println("Data size ", 0)
+		fmt.Println("pallette size", 0)
+		fmt.Println("Section", hex.Dump(output))
+	}
 
 	return output
 }
 
-func WriteBlockPalette(section ChunkSection, bitsPerBlock byte, blockData map[string]entity.BlockData) []byte {
+func WriteBiomePalette(section ChunkSection, bitsPerBlock byte, blockData map[string]entity.BlockData) []byte {
+
 	if bitsPerBlock == 0 {
-		// Single value mode
-		if len(section.BlockStates.Palette) == 0 {
-			return append(WriteShort(int16(0)), WriteVarInt(0)...)
+		if len(section.Biomes.Palette) == 0 {
+			return append(WriteByte(byte(0)), WriteVarInt(0)...)
 		}
-		return append(WriteShort(int16(0)), WriteVarInt(GetBlockID(section.BlockStates.Palette[0], blockData))...)
+
+		return append(WriteByte(byte(0)), WriteVarInt(0)...) // TODO: actual biome data
+	}
+
+	if bitsPerBlock < 1 {
+		bitsPerBlock = 1
+	}
+
+	if bitsPerBlock > 3 {
+		return []byte{6}
+	}
+
+	output := append([]byte{bitsPerBlock}, WriteVarInt(len(section.Biomes.Palette))...)
+	for _, _ = range section.Biomes.Palette {
+		blockId := 0 // TODO ..
+		//fmt.Printf("name=%s id=%d index=%d\n", block.Name, blockId, i)
+		output = append(output, WriteVarInt(blockId)...)
+	}
+
+	return output
+
+}
+
+func WriteBlockPalette(section ChunkSection, bitsPerBlock byte, blockData map[string]entity.BlockData) []byte {
+	// Single value mode
+	if bitsPerBlock == 0 {
+
+		// All air
+		if len(section.BlockStates.Palette) == 0 {
+			if len(section.BlockStates.Data) != 0 {
+				panic("palette cannot be 0 whilst block data has data")
+			}
+
+			fmt.Println("palette and block data = 0, +", WriteVarInt(0))
+			return append(WriteByte(byte(0)), WriteVarInt(0)...)
+		}
+
+		fmt.Println("All single block type +", 0, WriteVarInt(GetBlockID(section.BlockStates.Palette[0], blockData)))
+		// All a single other block type
+		return append(WriteByte(byte(0)), WriteVarInt(GetBlockID(section.BlockStates.Palette[0], blockData))...)
 	}
 
 	// Minimum bpb is 4
@@ -60,16 +105,18 @@ func WriteBlockPalette(section ChunkSection, bitsPerBlock byte, blockData map[st
 
 	// Higher than 8 we just use the original ID so there is no palette
 	if bitsPerBlock > 8 {
-		return WriteShort(int16(15))
+		fmt.Println("Bits per block are over 8 so we just return 15")
+		return []byte{15}
 	}
 
 	// [bitsPerBlock] [paletteLength] [palette...]
 
+	fmt.Println("Palette length", WriteVarInt(len(section.BlockStates.Palette)))
 	output := append([]byte{bitsPerBlock}, WriteVarInt(len(section.BlockStates.Palette))...)
-
 	for _, block := range section.BlockStates.Palette {
 		blockId := GetBlockID(block, blockData)
 		//fmt.Printf("name=%s id=%d index=%d\n", block.Name, blockId, i)
+		fmt.Println("block id", WriteVarInt(blockId))
 		output = append(output, WriteVarInt(blockId)...)
 	}
 
@@ -86,7 +133,7 @@ func GetBlockID(target ChunkSectionBlockStatePalette, blockData map[string]entit
 	// For now ignore block states
 	block, exists := blockData[target.Name]
 	if !exists || len(block.States) == 0 {
-		fmt.Println("!! block state doesn't exist for ", target.Name)
+		log.Panicf("!! block state doesn't exist for %s", target.Name)
 		return 0
 	}
 	for _, blockState := range block.States {

@@ -7,5 +7,5 @@ type Tags struct {
 }
 
 func (t *Tags) GetPacketId() int {
-	return 0
+	return 98
 }

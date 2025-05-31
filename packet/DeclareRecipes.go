@@ -7,7 +7,7 @@ type DeclareRecipes struct {
 }
 
 func (dr *DeclareRecipes) GetPacketId() int {
-	return 0
+	return 99
 }
 
 /**

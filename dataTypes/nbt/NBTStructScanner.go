@@ -108,17 +108,7 @@ func NBTValueFromReflect(v reflect.Value) NBTValue {
 		newNbtValue := NBTStructToCompound(v.Addr().Interface())
 		nbtValue = &newNbtValue
 	} else {
-		if v.Kind() == reflect.Slice {
-			interfaceArray := v.Interface().([]interface{})
-			nbtValueArray := make([]NBTValue, len(interfaceArray))
-			for i, value := range interfaceArray {
-				nbtValueArray[i] = value.(NBTValue)
-			}
-			nbtValue.SetValue(nbtValueArray)
-		} else {
-			nbtValue.SetValue(v.Interface())
-		}
-
+		nbtValue.SetValue(v.Interface())
 	}
 
 	return nbtValue

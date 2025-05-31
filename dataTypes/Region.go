@@ -67,7 +67,7 @@ func ReadRegionFile(buf []byte) RegionMetadata {
 		chunk, length := ReadRegionChunk(buf[offset:])
 		for i := range chunk.Sections {
 			chunk.Sections[i].BitsPerBlock = byte(math.Ceil(math.Log(float64(len(chunk.Sections[i].BlockStates.Palette))) / math.Log(2)))
-			if chunk.Sections[i].BitsPerBlock < 4 {
+			if chunk.Sections[i].BitsPerBlock < 4 && chunk.Sections[i].BitsPerBlock != 0 {
 				chunk.Sections[i].BitsPerBlock = 4
 			}
 		}

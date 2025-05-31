@@ -3,7 +3,7 @@ package packet
 import "github.com/Ocelotworks/MinecraftGo/constants"
 
 type HeldItemChange struct {
-	Slot     byte `proto:"unsignedByte"`
+	Slot     int `proto:"varInt"`
 	IsServer bool
 }
 

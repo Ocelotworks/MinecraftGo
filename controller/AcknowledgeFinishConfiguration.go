@@ -1,6 +1,9 @@
 package controller
 
 import (
+	"encoding/hex"
+	"fmt"
+	"github.com/Ocelotworks/MinecraftGo/constants"
 	"github.com/Ocelotworks/MinecraftGo/dataTypes"
 	packetType "github.com/Ocelotworks/MinecraftGo/packet"
 )
@@ -62,4 +65,107 @@ func (lpr *AcknowledgeFinishConfiguration) Handle(packet []byte, connection *Con
 	})
 
 	connection.SendPacket(&difficulty)
+
+	heldItemChange := packetType.Packet(&packetType.HeldItemChange{
+		Slot:     0,
+		IsServer: true,
+	})
+	connection.SendPacket(&heldItemChange)
+
+	entityStatus := packetType.Packet(&packetType.EntityStatus{
+		EntityID:     connection.Player.EntityID,
+		EntityStatus: constants.PlayerOp4,
+	})
+
+	connection.SendPacket(&entityStatus)
+
+	viewPos := packetType.Packet(&packetType.UpdateViewPosition{
+		ChunkX: 6,
+		ChunkZ: 6,
+	})
+
+	connection.SendPacket(&viewPos)
+
+	waitingForChunksEvent := packetType.Packet(&packetType.GameEvent{
+		Event: packetType.EventTypeWaitingForChunks,
+		Value: 0,
+	})
+	connection.SendPacket(&waitingForChunksEvent)
+
+	// Region 0,0
+	region := connection.Minecraft.DataStore.Map[0][0]
+
+	for _, chunk := range region.Chunks {
+		if chunk == nil || len(chunk.Sections) == 0 {
+			continue
+		}
+		//fmt.Println("Sending chunk", chunk.XPos, chunk.YPos, chunk.ZPos)
+		chunkRaw := dataTypes.WriteNetChunk(chunk, connection.Minecraft.DataStore.BlockData)
+
+		lightMaskLength := (len(chunk.Sections) + 2) / 8
+		lightMask := dataTypes.WriteVarInt(lightMaskLength)
+		for i := 0; i < lightMaskLength; i++ {
+			lightMask = append(lightMask, dataTypes.WriteLong(int64(0))...)
+		}
+
+		fmt.Println("Chunk length ", len(chunkRaw))
+		fmt.Println(hex.Dump(chunkRaw))
+		chunkData := packetType.Packet(&packetType.ChunkData{
+			X:                    int(chunk.XPos),
+			Z:                    int(chunk.ZPos),
+			HeightMapsLength:     0,
+			HeightMapData:        []byte{},
+			DataSize:             len(chunkRaw),
+			Data:                 chunkRaw,
+			BlockEntityCount:     0,
+			BlockEntities:        []byte{},
+			SkyLightMask:         lightMask,
+			BlockLightMask:       lightMask,
+			EmptySkyLightMask:    lightMask,
+			EmptyBlockLightMask:  lightMask,
+			SkyLightArrayCount:   0,
+			SkyLightArrays:       []byte{},
+			BlockLightArrayCount: 0,
+			BlockLightArrays:     []byte{},
+		})
+
+		connection.SendPacket(&chunkData)
+	}
+
+	//playerSpawn := packetType.Packet(&packetType.SpawnPosition{
+	//    DimensionType:    0,
+	//    DimensionName:    "minecraft:overworld",
+	//    HashedSeed:       0,
+	//    GameMode:         1,
+	//    PreviousGameMode: 1,
+	//    IsDebug:          false,
+	//    IsFlat:           false,
+	//    HasDeathLocation: false,
+	//    PortalCooldown:   0,
+	//    SeaLevel:         64,
+	//    DataKept:         0,
+	//})
+	//
+	//connection.SendPacket(&playerSpawn)
+
+	playerPos := packetType.Packet(&packetType.PlayerPositionAndLook{
+		TeleportID: 12345,
+		X:          connection.Player.X,
+		Y:          connection.Player.Y,
+		Z:          connection.Player.Z,
+		VelX:       1,
+		VelY:       2,
+		VelZ:       3,
+		Yaw:        connection.Player.Yaw,
+		Pitch:      connection.Player.Pitch,
+		Flags1:     1,
+		Flags2:     2,
+		Flags3:     3,
+		Flags4:     4,
+	})
+
+	connection.SendPacket(&playerPos)
+	connection.Joined = true
+
+	connection.Minecraft.PlayerJoin(connection)
 }

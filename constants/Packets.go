@@ -57,7 +57,7 @@ const (
 	CBTeleportEntity             = 0x1F
 	CBExplosion                  = 0x20
 	CBUnloadChunk                = 0x21
-	GBGameEvent                  = 0x22
+	CBGameEvent                  = 0x22
 	CBOpenHorseScreen            = 0x23
 	CBHurtAnimation              = 0x24
 	CBInitializeWorldBorder      = 0x25

@@ -24,13 +24,13 @@ func (ka *KeepAlive) Handle(packet []byte, connection *Connection) {
 	ping := int(now - ka.CurrentPacket.ID)
 
 	if ping != connection.Ping {
-		updatePing := packetType.Packet(&packetType.PlayerInfoUpdatePing{
-			Action:          2,
-			NumberOfPlayers: 1,
-			UUID:            connection.Player.UUID,
-			Ping:            ping,
-		})
-		go connection.Minecraft.SendToAllInPlay(&updatePing)
+		//updatePing := packetType.Packet(&packetType.PlayerInfoUpdatePing{
+		//	Action:          2,
+		//	NumberOfPlayers: 1,
+		//	UUID:            connection.Player.UUID,
+		//	Ping:            ping,
+		//})
+		//go connection.Minecraft.SendToAllInPlay(&updatePing)
 		connection.Ping = ping
 	}
 	fmt.Println("KeepAlive ping", ping)

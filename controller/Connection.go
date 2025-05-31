@@ -68,6 +68,7 @@ var controllers = map[State][]Packet{
 		constants.SBAcknowledgeFinishConfiguration: &AcknowledgeFinishConfiguration{},
 	},
 	PLAY: {
+		constants.SBClientTickEnd:             &ClientTickEnd{},
 		constants.SBConfirmTeleportation:      &TeleportConfirm{},
 		constants.SBChatMessage:               &IncomingChatMessage{},
 		constants.SBClientInformation:         &ClientSettings{},

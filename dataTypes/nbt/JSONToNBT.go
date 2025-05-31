@@ -3,7 +3,6 @@ package nbt
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"reflect"
 )
 
@@ -45,44 +44,45 @@ func arrayInterfaceToNBT(interfaceArray []interface{}) *List {
 		Data: make([]NBTValue, len(interfaceArray)),
 	}
 
+	if len(interfaceArray) == 0 {
+		return &list
+	}
+
+	isMixedTypeList := false
 	for _, val := range interfaceArray {
 		elemKind := reflect.TypeOf(val).Kind()
 		if list.Type == 0 {
 			list.Type = IDFromType(elemKind.String())
 			continue
 		}
+
 		typeId := IDFromType(elemKind.String())
 		if typeId != list.Type {
-			fmt.Println("ew! it's a weirdo mixed list type!", typeId, list.Type)
-		}
-		// TODO: figure out what the fuck a mixed type list is supposed to be
-
-		// If this is a list, lets just set all the other things in here to be a list too
-		if typeId == 9 {
-			for i, val := range interfaceArray {
-				elemKind := reflect.TypeOf(val).Kind()
-				if elemKind != reflect.Slice {
-					interfaceArray[i] = []interface{}{val}
-				}
-			}
+			isMixedTypeList = true
+			list.Type = 10
 			break
 		}
+
 		list.Type = IDFromType(elemKind.String())
 	}
 
-	if len(interfaceArray) == 0 {
-		return &list
-	}
-	elemKind := reflect.TypeOf(interfaceArray[0]).Kind()
 	for i, val := range interfaceArray {
+		elemKind := reflect.TypeOf(interfaceArray[i]).Kind()
 		if elemKind == reflect.Map {
 			mapValue := mapStringInterfaceToNBT(val.(map[string]interface{}))
 			list.Data[i] = &mapValue
 			continue
-		} else if elemKind == reflect.Slice {
+		} else if elemKind == reflect.Slice || elemKind == reflect.Array {
 			list.Data[i] = arrayInterfaceToNBT(val.([]interface{}))
 		} else {
 			list.Data[i] = NBTValueFromReflect(reflect.ValueOf(val))
+		}
+
+		if isMixedTypeList {
+			compoundWrapper := NewCompound(map[string]NBTValue{
+				"": list.Data[i],
+			})
+			list.Data[i] = &compoundWrapper
 		}
 	}
 

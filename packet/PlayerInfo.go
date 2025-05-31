@@ -24,15 +24,15 @@ type PlayerInfoUpdatePing struct {
 
 // TODO: this is all completely different now
 func (piap *PlayerInfoAddPlayer) GetPacketId() int {
-	return 0
+	return 97
 }
 
 func (pirp *PlayerInfoRemovePlayer) GetPacketId() int {
-	return 0
+	return 96
 }
 
 func (piup *PlayerInfoUpdatePing) GetPacketId() int {
-	return 0
+	return 95
 }
 
 /**

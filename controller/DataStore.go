@@ -37,19 +37,25 @@ func (ds *DataStore) LoadBlockData() {
 	}
 }
 
-func (ds *DataStore) LoadStartingArea() {
-	fmt.Println("Loading starting region...")
-	inData, exception := ioutil.ReadFile("C:\\Users\\unacc\\AppData\\Roaming\\.minecraft\\saves\\flat\\region\\r.0.0.mca")
+func (ds *DataStore) loadRegionFile(x int, y int) *dataTypes.RegionMetadata {
+	inData, exception := ioutil.ReadFile(fmt.Sprintf("C:\\Users\\unacc\\IdeaProjects\\MinecraftGo\\data\\worlds\\MCGO_FlatTest\\region\\r.%d.%d.mca", x, y))
 
 	if exception != nil {
 		fmt.Println("Reading file")
 		fmt.Println(exception)
-		return
+		return nil
 	}
 
 	region := dataTypes.ReadRegionFile(inData)
+	return &region
+}
 
-	ds.Map = [][]*dataTypes.RegionMetadata{{&region}}
+func (ds *DataStore) LoadStartingArea() {
+	fmt.Println("Loading starting region...")
+
+	ds.Map = [][]*dataTypes.RegionMetadata{
+		{ds.loadRegionFile(-1, -1)},
+	}
 }
 
 func (ds *DataStore) LoadCodec() {

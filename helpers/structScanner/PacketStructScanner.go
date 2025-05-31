@@ -32,8 +32,6 @@ func (pss *PacketStructScanner) StructScan(packet *packetType.Packet, buf []byte
 			continue
 		}
 
-		fmt.Println("Reading ", tag, field.Name)
-
 		val, end := dataReadMap[tag](buf[cursor:])
 
 		cursor += end

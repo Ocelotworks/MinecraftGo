@@ -167,6 +167,7 @@ type ChunkBlockEntity struct {
 type ChunkSection struct {
 	Y            uint8                   `nbt:"Y"`
 	BlockLight   []byte                  `nbt:"BlockLight"`
+	SkyLight     []byte                  `nbt:"SkyLight"`
 	Biomes       ChunkSectionBiome       `nbt:"biomes"`
 	BlockStates  ChunkSectionBlockStates `nbt:"block_states"`
 	BitsPerBlock byte                    `nbt:"-"`

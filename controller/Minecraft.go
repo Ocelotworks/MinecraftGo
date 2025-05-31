@@ -179,12 +179,12 @@ func (mc *Minecraft) BlockCoordToChunkCoord(coord float64) int {
 func (mc *Minecraft) PlayerJoin(connection *Connection) {
 	mc.ConnectedPlayers++
 
-	currentPlayersPacket := packetType.Packet(&packetType.PlayerInfoAddPlayer{
-		Action:  0,
-		Players: []entity.Player{*connection.Player},
-	})
-
-	mc.SendToAllExcept(connection, &currentPlayersPacket)
+	//currentPlayersPacket := packetType.Packet(&packetType.PlayerInfoAddPlayer{
+	//	Action:  0,
+	//	Players: []entity.Player{*connection.Player},
+	//})
+	//
+	//mc.SendToAllExcept(connection, &currentPlayersPacket)
 
 	currentPlayers := make([]entity.Player, 0)
 	for _, con := range mc.Connections {
@@ -194,12 +194,12 @@ func (mc *Minecraft) PlayerJoin(connection *Connection) {
 		currentPlayers = append(currentPlayers, *con.Player)
 	}
 
-	currentPlayersPacket = packetType.Packet(&packetType.PlayerInfoAddPlayer{
-		Action:  0,
-		Players: currentPlayers,
-	})
-
-	connection.SendPacket(&currentPlayersPacket)
+	//currentPlayersPacket = packetType.Packet(&packetType.PlayerInfoAddPlayer{
+	//	Action:  0,
+	//	Players: currentPlayers,
+	//})
+	//
+	//connection.SendPacket(&currentPlayersPacket)
 
 	// TODO: why is this duplicated like this?
 	for _, con := range mc.Connections {
@@ -231,47 +231,47 @@ func (mc *Minecraft) PlayerJoin(connection *Connection) {
 	})
 	mc.SendToAllExcept(connection, &packet)
 
-	yellow := entity.Yellow
-	chatMessageComponents := []entity.ChatMessageComponent{
-		{
-			Text:   connection.Player.Username,
-			Colour: &yellow,
-		},
-	}
+	//yellow := entity.Yellow
+	//chatMessageComponents := []entity.ChatMessageComponent{
+	//    {
+	//        Text:   connection.Player.Username,
+	//        Colour: &yellow,
+	//    },
+	//}
 
-	chatMessage := entity.ChatMessage{
-		Translate: "multiplayer.player.joined",
-		With:      &chatMessageComponents,
-	}
+	//chatMessage := entity.ChatMessage{
+	//    Translate: "multiplayer.player.joined",
+	//    With:      &chatMessageComponents,
+	//}
+	//
+	//go mc.SendMessage(1, chatMessage)
 
-	go mc.SendMessage(1, chatMessage)
+	//bold := true
+	//headerComponents := []entity.ChatMessageComponent{
+	//    {
+	//        Text: "Big P MC",
+	//        Bold: &bold,
+	//    },
+	//}
 
-	bold := true
-	headerComponents := []entity.ChatMessageComponent{
-		{
-			Text: "Big P MC",
-			Bold: &bold,
-		},
-	}
+	//listHeader := entity.ChatMessage{
+	//    Translate: "%s",
+	//    With:      &headerComponents,
+	//}
+	//
+	//listFooter := entity.ChatMessage{
+	//    Translate: "",
+	//}
 
-	listHeader := entity.ChatMessage{
-		Translate: "%s",
-		With:      &headerComponents,
-	}
+	//header, _ := json.Marshal(listHeader)
+	//footer, _ := json.Marshal(listFooter)
 
-	listFooter := entity.ChatMessage{
-		Translate: "",
-	}
-
-	header, _ := json.Marshal(listHeader)
-	footer, _ := json.Marshal(listFooter)
-
-	packet = &packetType.PlayerListHeaderAndFooter{
-		Header: string(header),
-		Footer: string(footer),
-	}
-
-	connection.SendPacket(&packet)
+	//packet = &packetType.PlayerListHeaderAndFooter{
+	//    Header: string(header),
+	//    Footer: string(footer),
+	//}
+	//
+	//connection.SendPacket(&packet)
 
 	go connection.sendKeepAlive()
 }
@@ -281,13 +281,13 @@ func (mc *Minecraft) PlayerLeave(connection *Connection) {
 	if connection.Player != nil && connection.Player.EntityID != 0 {
 		mc.ConnectedPlayers--
 		// Send player list update
-		currentPlayersPacket := packetType.Packet(&packetType.PlayerInfoRemovePlayer{
-			Action:          4,
-			NumberOfPlayers: 1,
-			UUID:            connection.Player.UUID,
-		})
-
-		mc.SendToAllExcept(connection, &currentPlayersPacket)
+		//currentPlayersPacket := packetType.Packet(&packetType.PlayerInfoRemovePlayer{
+		//    Action:          4,
+		//    NumberOfPlayers: 1,
+		//    UUID:            connection.Player.UUID,
+		//})
+		//
+		//mc.SendToAllExcept(connection, &currentPlayersPacket)
 
 		// Send chat message
 		yellow := entity.Yellow
