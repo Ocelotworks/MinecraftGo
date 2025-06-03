@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/hex"
 	"fmt"
 	"github.com/Ocelotworks/MinecraftGo/constants"
 	"github.com/Ocelotworks/MinecraftGo/dataTypes"
@@ -10,6 +9,7 @@ import (
 
 type AcknowledgeFinishConfiguration struct {
 	CurrentPacket *packetType.AcknowledgeFinishConfiguration
+	Minecraft     *Minecraft
 }
 
 func (lpr *AcknowledgeFinishConfiguration) GetPacketStruct() packetType.Packet {
@@ -18,6 +18,7 @@ func (lpr *AcknowledgeFinishConfiguration) GetPacketStruct() packetType.Packet {
 
 func (lpr *AcknowledgeFinishConfiguration) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
 	lpr.CurrentPacket = currentPacket.(*packetType.AcknowledgeFinishConfiguration)
+	lpr.Minecraft = minecraft
 }
 
 func (lpr *AcknowledgeFinishConfiguration) Handle(packet []byte, connection *Connection) {
@@ -92,44 +93,72 @@ func (lpr *AcknowledgeFinishConfiguration) Handle(packet []byte, connection *Con
 	})
 	connection.SendPacket(&waitingForChunksEvent)
 
-	// Region 0,0
-	region := connection.Minecraft.DataStore.Map[0][0]
+	for chunkX := range lpr.Minecraft.ChunkManager.Chunks {
+		for chunkZ := range lpr.Minecraft.ChunkManager.Chunks[chunkX] {
+			chunk := lpr.Minecraft.ChunkManager.Chunks[chunkX][chunkZ]
+			if chunk.BlocksInChunk == 0 {
+				fmt.Printf("Chunk %d, %d is empty\n", chunkX, chunkZ)
+				continue
+			}
+			lightMaskLength := (16 + 2) / 8
+			lightMask := dataTypes.WriteVarInt(lightMaskLength)
+			emptyLightMask := dataTypes.WriteVarInt(lightMaskLength)
+			for i := 0; i < lightMaskLength; i++ {
+				lightMask = append(lightMask, dataTypes.WriteLong(int64(0))...)
+				emptyLightMask = append(emptyLightMask, dataTypes.WriteLong(int64(0))...)
+			}
 
-	for _, chunk := range region.Chunks {
-		if chunk == nil || len(chunk.Sections) == 0 {
-			continue
+			chunkData := make([]byte, 0)
+
+			for i := 0; i < 24; i++ {
+
+				chunkData = append(chunkData, dataTypes.WriteShort(int16(chunk.BlocksInChunk))...) // Block count
+				//chunkData = append(chunkData, dataTypes.WriteShort(int16(4096))...) // Block count
+				chunkData = append(chunkData, 15) // Bits per block
+				//chunkData = append(chunkData, dataTypes.WriteVarInt(1)...)
+
+				for y := range chunk.Blocks {
+					for z := range chunk.Blocks[y] {
+						for _, block := range chunk.Blocks[y][z] {
+							blockData, ok := lpr.Minecraft.DataStore.BlockData[block.Type]
+							if !ok {
+								fmt.Println("unable to find block of name", block.Type)
+								chunkData = append(chunkData, dataTypes.WriteLong(int64(0))...)
+							} else {
+								chunkData = append(chunkData, dataTypes.WriteLong(int64(blockData.ID))...)
+							}
+
+						}
+					}
+				}
+
+				// Biome data
+				chunkData = append(chunkData, 0)
+				chunkData = append(chunkData, dataTypes.WriteVarInt(1)...)
+			}
+
+			chunkPacket := packetType.Packet(&packetType.ChunkData{
+				X:                    int(chunkX),
+				Z:                    int(chunkZ),
+				HeightMapsLength:     0,
+				HeightMapData:        []byte{},
+				DataSize:             len(chunkData),
+				Data:                 chunkData,
+				BlockEntityCount:     0,
+				BlockEntities:        []byte{},
+				SkyLightMask:         lightMask,
+				BlockLightMask:       lightMask,
+				EmptySkyLightMask:    emptyLightMask,
+				EmptyBlockLightMask:  emptyLightMask,
+				SkyLightArrayCount:   0,
+				SkyLightArrays:       []byte{},
+				BlockLightArrayCount: 0,
+				BlockLightArrays:     []byte{},
+			})
+
+			connection.SendPacket(&chunkPacket)
+
 		}
-		//fmt.Println("Sending chunk", chunk.XPos, chunk.YPos, chunk.ZPos)
-		chunkRaw := dataTypes.WriteNetChunk(chunk, connection.Minecraft.DataStore.BlockData)
-
-		lightMaskLength := (len(chunk.Sections) + 2) / 8
-		lightMask := dataTypes.WriteVarInt(lightMaskLength)
-		for i := 0; i < lightMaskLength; i++ {
-			lightMask = append(lightMask, dataTypes.WriteLong(int64(0))...)
-		}
-
-		fmt.Println("Chunk length ", len(chunkRaw))
-		fmt.Println(hex.Dump(chunkRaw))
-		chunkData := packetType.Packet(&packetType.ChunkData{
-			X:                    int(chunk.XPos),
-			Z:                    int(chunk.ZPos),
-			HeightMapsLength:     0,
-			HeightMapData:        []byte{},
-			DataSize:             len(chunkRaw),
-			Data:                 chunkRaw,
-			BlockEntityCount:     0,
-			BlockEntities:        []byte{},
-			SkyLightMask:         lightMask,
-			BlockLightMask:       lightMask,
-			EmptySkyLightMask:    lightMask,
-			EmptyBlockLightMask:  lightMask,
-			SkyLightArrayCount:   0,
-			SkyLightArrays:       []byte{},
-			BlockLightArrayCount: 0,
-			BlockLightArrays:     []byte{},
-		})
-
-		connection.SendPacket(&chunkData)
 	}
 
 	//playerSpawn := packetType.Packet(&packetType.SpawnPosition{
@@ -166,6 +195,16 @@ func (lpr *AcknowledgeFinishConfiguration) Handle(packet []byte, connection *Con
 
 	connection.SendPacket(&playerPos)
 	connection.Joined = true
+
+	entityEffect := packetType.Packet(&packetType.EntityEffect{
+		EntityId:  connection.Player.EntityID,
+		EffectId:  15, // TODO https://github.com/PrismarineJS/minecraft-data/blob/abd43b3b5f6627cfc6abc66f7eee9598cc00e44f/data/pc/1.21.5/effects.json
+		Amplifier: 0,
+		Duration:  -1,
+		Flags:     0,
+	})
+
+	connection.SendPacket(&entityEffect)
 
 	connection.Minecraft.PlayerJoin(connection)
 }

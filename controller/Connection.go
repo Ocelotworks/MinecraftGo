@@ -205,9 +205,6 @@ func (c *Connection) Handle() {
 				continue
 			}
 
-			fmt.Println("Current state ", c.State)
-			fmt.Println("Incoming packet type ", currentPacketType)
-
 			packetController := controllers[c.State][currentPacketType]
 
 			packet := packetController.GetPacketStruct()
@@ -219,8 +216,12 @@ func (c *Connection) Handle() {
 
 			packetBuffer := decryptedBuf[cursor:]
 
-			fmt.Println(">>>INCOMING<<<")
-			fmt.Println(hex.Dump(packetBuffer))
+			if c.State < 5 {
+				fmt.Println("Current state ", c.State)
+				fmt.Println("Incoming packet type ", currentPacketType)
+				fmt.Println(">>>INCOMING<<<")
+				fmt.Println(hex.Dump(packetBuffer))
+			}
 
 			packetStructScanner.StructScan(&packet, packetBuffer)
 

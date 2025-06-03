@@ -33,8 +33,12 @@ func (cm *ChunkManager) loadRegionFile(x int, y int) *dataTypes.RegionMetadata {
 func (cm *ChunkManager) LoadRegion(x int, y int) {
 
 	regionMetadata := cm.loadRegionFile(x, y)
+	cm.Chunks = make(map[int32]map[int32]*Chunk)
 
 	for _, chunk := range regionMetadata.Chunks {
+		if chunk == nil {
+			continue
+		}
 		_, ok := cm.Chunks[chunk.XPos]
 		if !ok {
 			cm.Chunks[chunk.XPos] = make(map[int32]*Chunk)

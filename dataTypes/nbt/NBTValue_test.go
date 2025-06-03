@@ -89,19 +89,3 @@ func TestLoadMap2NBT(t *testing.T) {
 	out, _ := json.Marshal(compound)
 	fmt.Println(string(out))
 }
-
-func TestLoadCodecNBT(t *testing.T) {
-	inData, exception := ioutil.ReadFile("../../data/codec.nbt")
-	assert.Nil(t, exception)
-
-	compressed := bytes.NewReader(inData)
-	zr, exception := gzip.NewReader(compressed)
-	assert.Nil(t, exception)
-
-	uncompressed, exception := ioutil.ReadAll(zr)
-	assert.Nil(t, exception)
-
-	compound, _ := ReadNBT(uncompressed)
-	out, _ := json.Marshal(compound)
-	fmt.Println(string(out))
-}

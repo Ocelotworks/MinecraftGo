@@ -6,6 +6,7 @@ import (
 	"github.com/Ocelotworks/MinecraftGo/constants"
 	"github.com/Ocelotworks/MinecraftGo/dataTypes/nbt"
 	"github.com/Ocelotworks/MinecraftGo/helpers"
+	"github.com/Ocelotworks/MinecraftGo/world"
 	"math"
 	"time"
 
@@ -26,6 +27,7 @@ type Minecraft struct {
 	TimeOfDay            int64
 	DataStore            *DataStore
 	Registries           map[string]map[string]nbt.NBTValue
+	ChunkManager         *world.ChunkManager
 }
 
 func CreateMinecraft() *Minecraft {
@@ -47,6 +49,7 @@ func CreateMinecraft() *Minecraft {
 	}
 
 	mc.LoadRegistries()
+	mc.LoadChunks()
 
 	//go mc.timeTracker()
 
@@ -443,4 +446,11 @@ func (mc *Minecraft) LoadRegistries() {
 			mc.Registries[registryName][entryFile] = &nbtValue
 		}
 	}
+}
+
+func (mc *Minecraft) LoadChunks() {
+
+	mc.ChunkManager = world.NewChunkManager()
+	mc.ChunkManager.LoadRegion(0, 0)
+
 }

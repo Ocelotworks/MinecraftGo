@@ -17,7 +17,7 @@ func NewDataStore() *DataStore {
 	ds := &DataStore{}
 
 	ds.LoadBlockData()
-	ds.LoadStartingArea()
+	//ds.LoadStartingArea()
 
 	return ds
 }
@@ -25,11 +25,20 @@ func NewDataStore() *DataStore {
 func (ds *DataStore) LoadBlockData() {
 	fmt.Println("Loading BlockData...")
 	blockFile, exception := ioutil.ReadFile("data/blocks.json")
-	exception = json.Unmarshal(blockFile, &ds.BlockData)
+
+	blockData := make([]entity.BlockData, 0)
+
+	exception = json.Unmarshal(blockFile, &blockData)
 
 	if exception != nil {
 		fmt.Println("Error reading block data", exception)
 	}
+
+	ds.BlockData = make(map[string]entity.BlockData)
+	for _, block := range blockData {
+		ds.BlockData["minecraft:"+block.Name] = block
+	}
+
 }
 
 func (ds *DataStore) loadRegionFile(x int, y int) *dataTypes.RegionMetadata {
