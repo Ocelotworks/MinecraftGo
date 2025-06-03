@@ -1,12 +1,9 @@
 package controller
 
 import (
-	"bytes"
-	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"github.com/Ocelotworks/MinecraftGo/dataTypes"
-	"github.com/Ocelotworks/MinecraftGo/dataTypes/nbt"
 	"github.com/Ocelotworks/MinecraftGo/entity"
 	"io/ioutil"
 )
@@ -14,7 +11,6 @@ import (
 type DataStore struct {
 	BlockData map[string]entity.BlockData
 	Map       [][]*dataTypes.RegionMetadata
-	Codec     *dataTypes.CodecOuterCompound
 }
 
 func NewDataStore() *DataStore {
@@ -22,7 +18,6 @@ func NewDataStore() *DataStore {
 
 	ds.LoadBlockData()
 	ds.LoadStartingArea()
-	ds.LoadCodec()
 
 	return ds
 }
@@ -56,27 +51,4 @@ func (ds *DataStore) LoadStartingArea() {
 	ds.Map = [][]*dataTypes.RegionMetadata{
 		{ds.loadRegionFile(-1, -1)},
 	}
-}
-
-func (ds *DataStore) LoadCodec() {
-	fmt.Println("Loading codec...")
-	inData, exception := ioutil.ReadFile("data/codec.nbt")
-
-	compressed := bytes.NewReader(inData)
-	zr, exception := gzip.NewReader(compressed)
-
-	if exception != nil {
-		fmt.Println(exception)
-	}
-
-	uncompressed, exception := ioutil.ReadAll(zr)
-
-	if exception != nil {
-		fmt.Println(exception)
-	}
-
-	compound, _ := nbt.ReadNBT(uncompressed)
-	ds.Codec = &dataTypes.CodecOuterCompound{}
-
-	nbt.NBTStructScan(ds.Codec, &compound)
 }
