@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"github.com/Ocelotworks/MinecraftGo/constants"
 	"github.com/Ocelotworks/MinecraftGo/dataTypes"
 	packetType "github.com/Ocelotworks/MinecraftGo/packet"
@@ -52,25 +51,26 @@ func (lpr *AcknowledgeFinishConfiguration) Handle(packet []byte, connection *Con
 
 	connection.SendPacket(&joinGame)
 
-	pluginMessage := packetType.Packet(&packetType.PluginMessage{
-		IsServer:   false,
-		Identifier: "minecraft:brand",
-		ByteArray:  dataTypes.WriteString("BigPMC"),
-	})
-
-	connection.SendPacket(&pluginMessage)
-
-	difficulty := packetType.Packet(&packetType.ServerDifficulty{
-		Difficulty:       0,
-		DifficultyLocked: false,
-	})
-
-	connection.SendPacket(&difficulty)
+	//pluginMessage := packetType.Packet(&packetType.PluginMessage{
+	//	IsServer:   false,
+	//	Identifier: "minecraft:brand",
+	//	ByteArray:  dataTypes.WriteString("BigPMC"),
+	//})
+	//
+	//connection.SendPacket(&pluginMessage)
+	//
+	//difficulty := packetType.Packet(&packetType.ServerDifficulty{
+	//	Difficulty:       0,
+	//	DifficultyLocked: false,
+	//})
+	//
+	//connection.SendPacket(&difficulty)
 
 	heldItemChange := packetType.Packet(&packetType.HeldItemChange{
 		Slot:     0,
 		IsServer: true,
 	})
+
 	connection.SendPacket(&heldItemChange)
 
 	entityStatus := packetType.Packet(&packetType.EntityStatus{
@@ -80,131 +80,73 @@ func (lpr *AcknowledgeFinishConfiguration) Handle(packet []byte, connection *Con
 
 	connection.SendPacket(&entityStatus)
 
-	viewPos := packetType.Packet(&packetType.UpdateViewPosition{
-		ChunkX: 6,
-		ChunkZ: 6,
-	})
-
-	connection.SendPacket(&viewPos)
-
-	waitingForChunksEvent := packetType.Packet(&packetType.GameEvent{
-		Event: packetType.EventTypeWaitingForChunks,
-		Value: 0,
-	})
-	connection.SendPacket(&waitingForChunksEvent)
-
-	for chunkX := range lpr.Minecraft.ChunkManager.Chunks {
-		for chunkZ := range lpr.Minecraft.ChunkManager.Chunks[chunkX] {
-			chunk := lpr.Minecraft.ChunkManager.Chunks[chunkX][chunkZ]
-			if chunk.BlocksInChunk == 0 {
-				fmt.Printf("Chunk %d, %d is empty\n", chunkX, chunkZ)
-				continue
-			}
-			lightMaskLength := (16 + 2) / 8
-			lightMask := dataTypes.WriteVarInt(lightMaskLength)
-			emptyLightMask := dataTypes.WriteVarInt(lightMaskLength)
-			for i := 0; i < lightMaskLength; i++ {
-				lightMask = append(lightMask, dataTypes.WriteLong(int64(0))...)
-				emptyLightMask = append(emptyLightMask, dataTypes.WriteLong(int64(0))...)
-			}
-
-			chunkData := make([]byte, 0)
-
-			for i := 0; i < 24; i++ {
-
-				chunkData = append(chunkData, dataTypes.WriteShort(int16(chunk.BlocksInChunk))...) // Block count
-				//chunkData = append(chunkData, dataTypes.WriteShort(int16(4096))...) // Block count
-				chunkData = append(chunkData, 15) // Bits per block
-				//chunkData = append(chunkData, dataTypes.WriteVarInt(1)...)
-
-				for y := range chunk.Blocks {
-					for z := range chunk.Blocks[y] {
-						for _, block := range chunk.Blocks[y][z] {
-							blockData, ok := lpr.Minecraft.DataStore.BlockData[block.Type]
-							if !ok {
-								fmt.Println("unable to find block of name", block.Type)
-								chunkData = append(chunkData, dataTypes.WriteLong(int64(0))...)
-							} else {
-								chunkData = append(chunkData, dataTypes.WriteLong(int64(blockData.ID))...)
-							}
-
-						}
-					}
-				}
-
-				// Biome data
-				chunkData = append(chunkData, 0)
-				chunkData = append(chunkData, dataTypes.WriteVarInt(1)...)
-			}
-
-			chunkPacket := packetType.Packet(&packetType.ChunkData{
-				X:                    int(chunkX),
-				Z:                    int(chunkZ),
-				HeightMapsLength:     0,
-				HeightMapData:        []byte{},
-				DataSize:             len(chunkData),
-				Data:                 chunkData,
-				BlockEntityCount:     0,
-				BlockEntities:        []byte{},
-				SkyLightMask:         lightMask,
-				BlockLightMask:       lightMask,
-				EmptySkyLightMask:    emptyLightMask,
-				EmptyBlockLightMask:  emptyLightMask,
-				SkyLightArrayCount:   0,
-				SkyLightArrays:       []byte{},
-				BlockLightArrayCount: 0,
-				BlockLightArrays:     []byte{},
-			})
-
-			connection.SendPacket(&chunkPacket)
-
-		}
-	}
-
-	//playerSpawn := packetType.Packet(&packetType.SpawnPosition{
-	//    DimensionType:    0,
-	//    DimensionName:    "minecraft:overworld",
-	//    HashedSeed:       0,
-	//    GameMode:         1,
-	//    PreviousGameMode: 1,
-	//    IsDebug:          false,
-	//    IsFlat:           false,
-	//    HasDeathLocation: false,
-	//    PortalCooldown:   0,
-	//    SeaLevel:         64,
-	//    DataKept:         0,
-	//})
-	//
-	//connection.SendPacket(&playerSpawn)
-
+	// Place the player before the chunks go out, as PlayerList.placeNewPlayer
+	// does: what the client waits on to leave the loading screen is the chunk
+	// the player is standing in, so it has to know where that is.
 	playerPos := packetType.Packet(&packetType.PlayerPositionAndLook{
 		TeleportID: 12345,
 		X:          connection.Player.X,
 		Y:          connection.Player.Y,
 		Z:          connection.Player.Z,
-		VelX:       1,
-		VelY:       2,
-		VelZ:       3,
+		VelX:       0,
+		VelY:       0,
+		VelZ:       0,
 		Yaw:        connection.Player.Yaw,
 		Pitch:      connection.Player.Pitch,
-		Flags1:     1,
-		Flags2:     2,
-		Flags3:     3,
-		Flags4:     4,
+		Flags:      0,
 	})
 
 	connection.SendPacket(&playerPos)
-	connection.Joined = true
 
-	entityEffect := packetType.Packet(&packetType.EntityEffect{
-		EntityId:  connection.Player.EntityID,
-		EffectId:  15, // TODO https://github.com/PrismarineJS/minecraft-data/blob/abd43b3b5f6627cfc6abc66f7eee9598cc00e44f/data/pc/1.21.5/effects.json
-		Amplifier: 0,
-		Duration:  -1,
-		Flags:     0,
+	playerSpawn := packetType.Packet(&packetType.SpawnPosition{
+		DimensionName: "minecraft:overworld",
+		Location:      &dataTypes.Position{X: 0, Y: 64, Z: 0},
+		Yaw:           0,
+		Pitch:         0,
 	})
 
-	connection.SendPacket(&entityEffect)
+	connection.SendPacket(&playerSpawn)
+
+	// The client keeps its chunk cache centred here and discards chunks that
+	// fall outside its view distance of it, so this has to be the chunk the
+	// player is actually in or the chunks below get thrown away on arrival.
+	viewPos := packetType.Packet(&packetType.UpdateViewPosition{
+		ChunkX: connection.Minecraft.BlockCoordToChunkCoord(connection.Player.X),
+		ChunkZ: connection.Minecraft.BlockCoordToChunkCoord(connection.Player.Z),
+	})
+
+	connection.SendPacket(&viewPos)
+
+	// Until this arrives the client sits on "Loading terrain..." forever: its
+	// LevelLoadTracker starts in WaitingForServer, and nothing else moves it
+	// out of that state, which has no timeout of its own.  This is what
+	// PlayerList.sendLevelInfo ends with, and it moves the client on to
+	// waiting for the chunk it is standing in to render — or for thirty
+	// seconds, whichever comes first — and then into the world.
+	chunksLoadStart := packetType.Packet(&packetType.GameEvent{
+		Event: packetType.EventTypeWaitingForChunks,
+		Value: 0,
+	})
+
+	connection.SendPacket(&chunksLoadStart)
+
+	// The view distance this uses came from the client information sent during
+	// configuration.  The play state has a copy of that packet, but the client
+	// only sends it again when its options change, so a join that waited for
+	// one would usually wait forever.
+	connection.Minecraft.SendChunks(connection)
+
+	connection.Joined = true
+
+	//entityEffect := packetType.Packet(&packetType.EntityEffect{
+	//	EntityId:  connection.Player.EntityID,
+	//	EffectId:  15, // TODO https://github.com/PrismarineJS/minecraft-data/blob/abd43b3b5f6627cfc6abc66f7eee9598cc00e44f/data/pc/1.21.5/effects.json
+	//	Amplifier: 0,
+	//	Duration:  -1,
+	//	Flags:     0,
+	//})
+	//
+	//connection.SendPacket(&entityEffect)
 
 	connection.Minecraft.PlayerJoin(connection)
 }

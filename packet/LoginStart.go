@@ -1,7 +1,8 @@
 package packet
 
 type LoginStart struct {
-	Username string `proto:"string"`
+	Username   string `proto:"string"`
+	PlayerUUID []byte `proto:"uuid"`
 }
 
 func (ls *LoginStart) GetPacketId() int {

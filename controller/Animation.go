@@ -3,33 +3,30 @@ package controller
 import (
 	"fmt"
 
+	"github.com/Ocelotworks/MinecraftGo/constants"
 	packetType "github.com/Ocelotworks/MinecraftGo/packet"
 )
 
-type Animation struct {
-	CurrentPacket *packetType.Animation
+type Interact struct {
+	CurrentPacket *packetType.Interact
 }
 
-func (a *Animation) GetPacketStruct() packetType.Packet {
-	return &packetType.Animation{}
+func (a *Interact) GetPacketStruct() packetType.Packet {
+	return &packetType.Interact{}
 }
 
-func (a *Animation) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
-	a.CurrentPacket = currentPacket.(*packetType.Animation)
+func (a *Interact) Init(currentPacket packetType.Packet, minecraft *Minecraft) {
+	a.CurrentPacket = currentPacket.(*packetType.Interact)
 }
 
-func (a *Animation) Handle(packet []byte, connection *Connection) {
-	fmt.Println("Animation", a)
+func (a *Interact) Handle(packet []byte, connection *Connection) {
+	fmt.Println("Interact", a)
 
-	action := byte(0)
-
-	if a.CurrentPacket.Hand == 1 {
-		action = 3
-	}
-
-	animation := packetType.Packet(&packetType.EntityAnimation{
-		EntityID:  connection.Player.EntityID,
-		Animation: action,
+	animation := packetType.Packet(&packetType.SwingAnimation{
+		EntityID:      a.CurrentPacket.EntityID,
+		Hand:          a.CurrentPacket.Hand,
+		AnimationType: constants.SwingAnimationWhack,
+		Duration:      60,
 	})
 
 	connection.Minecraft.SendToAllExcept(connection, &animation)

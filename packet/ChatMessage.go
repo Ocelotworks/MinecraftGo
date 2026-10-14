@@ -9,7 +9,7 @@ type ChatMessage struct {
 }
 
 func (cd *ChatMessage) GetPacketId() int {
-	return constants.CBPlayerChatMessage
+	return constants.CBPlayerChat
 }
 
 /**

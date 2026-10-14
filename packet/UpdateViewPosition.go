@@ -8,5 +8,5 @@ type UpdateViewPosition struct {
 }
 
 func (uvp *UpdateViewPosition) GetPacketId() int {
-	return constants.CBSetCenterChunk
+	return constants.CBSetChunkCacheCenter
 }

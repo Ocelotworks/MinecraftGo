@@ -30,7 +30,7 @@ type JoinGame struct {
 }
 
 func (ls *JoinGame) GetPacketId() int {
-	return constants.CBJoinGame
+	return constants.CBLogin
 }
 
 /**

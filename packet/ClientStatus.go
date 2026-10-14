@@ -7,5 +7,5 @@ type ClientStatus struct {
 }
 
 func (cs *ClientStatus) GetPacketId() int {
-	return constants.SBClientStatus
+	return constants.SBClientCommand
 }

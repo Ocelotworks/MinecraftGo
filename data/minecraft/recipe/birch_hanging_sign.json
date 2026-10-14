@@ -1,10 +1,9 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
-  "group": "hanging_sign",
+  "group": "wooden_hanging_sign",
   "key": {
     "#": "minecraft:stripped_birch_log",
-    "X": "minecraft:chain"
+    "X": "minecraft:iron_chain"
   },
   "pattern": [
     "X X",

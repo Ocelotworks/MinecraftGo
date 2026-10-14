@@ -117,7 +117,11 @@ func NBTValueFromReflect(v reflect.Value) NBTValue {
 // ReflectValueFromNBT converts an NBT value into a reflected value
 func ReflectValueFromNBT(v NBTValue, fieldType reflect.Type) reflect.Value {
 	if v.GetType() != 10 {
-		return reflect.ValueOf(v.GetValue())
+		val := reflect.ValueOf(v.GetValue())
+		if fieldType != nil && val.Type() != fieldType && val.Type().ConvertibleTo(fieldType) {
+			return val.Convert(fieldType)
+		}
+		return val
 	}
 
 	objectValue := reflect.New(fieldType)

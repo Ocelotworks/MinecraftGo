@@ -2,7 +2,7 @@ package packet
 
 import "github.com/Ocelotworks/MinecraftGo/constants"
 
-//TODO
+// TODO
 type PlayerAbilities struct {
 }
 

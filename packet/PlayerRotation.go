@@ -9,7 +9,7 @@ type PlayerRotation struct {
 }
 
 func (pr *PlayerRotation) GetPacketId() int {
-	return constants.SBPlayerRotation
+	return constants.SBMovePlayerRot
 }
 
 /**

@@ -19,7 +19,7 @@ type SpawnEntity struct {
 }
 
 func (sp *SpawnEntity) GetPacketId() int {
-	return constants.CBSpawnEntity
+	return constants.CBAddEntity
 }
 
 /**

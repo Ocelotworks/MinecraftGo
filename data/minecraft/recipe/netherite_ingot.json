@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shapeless",
-  "category": "misc",
   "group": "netherite_ingot",
   "ingredients": [
     "minecraft:netherite_scrap",
@@ -13,7 +12,6 @@
     "minecraft:gold_ingot"
   ],
   "result": {
-    "count": 1,
     "id": "minecraft:netherite_ingot"
   }
 }

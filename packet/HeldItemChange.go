@@ -9,9 +9,9 @@ type HeldItemChange struct {
 
 func (hic *HeldItemChange) GetPacketId() int {
 	if hic.IsServer {
-		return constants.CBSetHeldItem
+		return constants.CBSetHeldSlot
 	}
-	return constants.SBSetHeldItem
+	return constants.SBSetCarriedItem
 }
 
 /**

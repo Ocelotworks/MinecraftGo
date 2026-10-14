@@ -8,5 +8,5 @@ type TimeUpdate struct {
 }
 
 func (stu *TimeUpdate) GetPacketId() int {
-	return constants.CBTimeUpdate
+	return constants.CBSetTime
 }

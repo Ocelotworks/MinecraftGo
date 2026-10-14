@@ -11,7 +11,7 @@ type EntityMetadata struct {
 }
 
 func (em *EntityMetadata) GetPacketId() int {
-	return constants.CBSetEntityMetadata
+	return constants.CBSetEntityData
 }
 
 /**

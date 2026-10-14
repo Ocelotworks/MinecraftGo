@@ -3,8 +3,27 @@ package dataTypes
 import (
 	"encoding/binary"
 	"fmt"
-	"math"
+	"math/bits"
 )
+
+// bitsPerBlockForPalette is the width a block state container is stored at on
+// disc, following Strategy.createForBlockStates: the number of bits needed to
+// index the palette (Mth.ceillog2), raised to a floor of 4.  A single-entry
+// palette gets 0 — such a section carries no data array at all.
+//
+// The bit count is computed exactly rather than through math.Log, which can
+// round a power of two up and silently widen the container by one bit.
+func bitsPerBlockForPalette(paletteSize int) int {
+	if paletteSize <= 1 {
+		return 0
+	}
+
+	stateBits := bits.Len32(uint32(paletteSize - 1))
+	if stateBits < 4 {
+		return 4
+	}
+	return stateBits
+}
 
 type RegionMetadata struct {
 	ChunkOffsets []*ChunkOffset
@@ -65,11 +84,14 @@ func ReadRegionFile(buf []byte) RegionMetadata {
 		//fmt.Println("Offset is ", offset)
 
 		chunk, length := ReadRegionChunk(buf[offset:])
+		if chunk == nil {
+			// Unreadable chunk (an unsupported compression scheme, say).
+			// Leave the slot nil rather than dereferencing it below.
+			cursor += length
+			continue
+		}
 		for i := range chunk.Sections {
-			chunk.Sections[i].BitsPerBlock = byte(math.Ceil(math.Log(float64(len(chunk.Sections[i].BlockStates.Palette))) / math.Log(2)))
-			if chunk.Sections[i].BitsPerBlock < 4 && chunk.Sections[i].BitsPerBlock != 0 {
-				chunk.Sections[i].BitsPerBlock = 4
-			}
+			chunk.Sections[i].BitsPerBlock = byte(bitsPerBlockForPalette(len(chunk.Sections[i].BlockStates.Palette)))
 		}
 		region.Chunks[i] = chunk
 		cursor += length

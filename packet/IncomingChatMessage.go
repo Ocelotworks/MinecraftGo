@@ -13,7 +13,7 @@ type IncomingChatMessage struct {
 }
 
 func (icm *IncomingChatMessage) GetPacketId() int {
-	return constants.SBChatMessage
+	return constants.SBChat
 }
 
 /**

@@ -2,10 +2,11 @@ package packet
 
 import "github.com/Ocelotworks/MinecraftGo/constants"
 
-type Animation struct {
-	Hand int `proto:"varInt"`
+type Interact struct {
+	EntityID int            `proto:"varInt"`
+	Hand     constants.Hand `proto:"varInt"`
 }
 
-func (a *Animation) GetPacketId() int {
-	return constants.SBSwingArm
+func (a *Interact) GetPacketId() int {
+	return constants.SBInteract
 }

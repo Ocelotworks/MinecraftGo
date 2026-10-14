@@ -7,6 +7,7 @@ type LoginSuccess struct {
 	Username         string `proto:"string"`
 	PropertiesLength int    `proto:"varInt"`
 	Properties       []LoginProperty
+	SessionID        []byte `proto:"uuid"`
 }
 
 type LoginProperty struct {
@@ -15,7 +16,7 @@ type LoginProperty struct {
 }
 
 func (ls *LoginSuccess) GetPacketId() int {
-	return constants.CBLoginSuccess
+	return constants.CBLoginFinished
 }
 
 /**

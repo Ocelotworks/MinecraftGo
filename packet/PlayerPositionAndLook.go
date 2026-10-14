@@ -12,14 +12,11 @@ type PlayerPositionAndLook struct {
 	VelZ       float64 `proto:"double"`
 	Yaw        float32 `proto:"float"`
 	Pitch      float32 `proto:"float"`
-	Flags1     byte    `proto:"unsignedByte"`
-	Flags2     byte    `proto:"unsignedByte"`
-	Flags3     byte    `proto:"unsignedByte"`
-	Flags4     byte    `proto:"unsignedByte"`
+	Flags      int     `proto:"int"`
 }
 
 func (ppal *PlayerPositionAndLook) GetPacketId() int {
-	return constants.CBSyncPlayerPosition
+	return constants.CBPlayerPosition
 }
 
 /**

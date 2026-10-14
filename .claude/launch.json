@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "MinecraftGo Server",
+      "runtimeExecutable": "go",
+      "runtimeArgs": ["run", "."],
+      "port": 25565
+    }
+  ]
+}

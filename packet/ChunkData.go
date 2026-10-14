@@ -7,18 +7,27 @@ type HeightMap struct {
 	//WORLD_SURFACE
 }
 
+// ChunkData is ClientboundLevelChunkWithLightPacket: the chunk itself followed
+// by its light data.  The fields below are in wire order.
+//
+// Several fields are pre-encoded raw bytes because they are variable-length
+// structures the struct scanner has no type for:
+//
+//   - HeightMapData is a map of heightmap type to long array — a VarInt count
+//     then that many (VarInt type, VarInt length, longs) entries.  A count of
+//     zero sends no heightmaps, which the client accepts.
+//   - The four light masks are each a BitSet, sent as a VarInt long count
+//     followed by that many longs.
+//   - The light arrays are each a VarInt length followed by 2048 bytes, one
+//     nibble per block.
 type ChunkData struct {
-	X                int `proto:"int"`
-	Z                int `proto:"int"`
-	HeightMapsLength int `proto:"varInt"`
-	//HeightMapType    int    `proto:"varInt"`
-	//HeightMapLength  int    `proto:"varInt"`
-	HeightMapData    []byte `proto:"raw"`
-	DataSize         int    `proto:"varInt"`
-	Data             []byte `proto:"raw"`
-	BlockEntityCount int    `proto:"varInt"`
-	BlockEntities    []byte `proto:"raw"`
-	//TrustEdges           bool   `proto:"bool"`
+	X                    int    `proto:"int"`
+	Z                    int    `proto:"int"`
+	HeightMapData        []byte `proto:"raw"`
+	DataSize             int    `proto:"varInt"`
+	Data                 []byte `proto:"raw"`
+	BlockEntityCount     int    `proto:"varInt"`
+	BlockEntities        []byte `proto:"raw"`
 	SkyLightMask         []byte `proto:"raw"`
 	BlockLightMask       []byte `proto:"raw"`
 	EmptySkyLightMask    []byte `proto:"raw"`
@@ -30,11 +39,5 @@ type ChunkData struct {
 }
 
 func (cd *ChunkData) GetPacketId() int {
-	return constants.CBChunkDataAndUpdateLight
+	return constants.CBLevelChunkWithLight
 }
-
-/**
-func (cd *ChunkData) Handle(packet []byte, connection *Connection) {
-	//Client Only Packet
-}
-*/

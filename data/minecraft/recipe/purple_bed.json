@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "group": "bed",
   "key": {
     "#": "minecraft:purple_wool",
@@ -11,7 +10,6 @@
     "XXX"
   ],
   "result": {
-    "count": 1,
     "id": "minecraft:purple_bed"
   }
 }

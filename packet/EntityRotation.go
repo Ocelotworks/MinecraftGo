@@ -10,7 +10,7 @@ type EntityRotation struct {
 }
 
 func (er *EntityRotation) GetPacketId() int {
-	return constants.CBEntityRotation
+	return constants.CBMoveEntityRot
 }
 
 /**

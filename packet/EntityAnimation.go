@@ -8,7 +8,7 @@ type EntityAnimation struct {
 }
 
 func (ea *EntityAnimation) GetPacketId() int {
-	return constants.CBEntityAnimation
+	return constants.CBAnimate
 }
 
 /**

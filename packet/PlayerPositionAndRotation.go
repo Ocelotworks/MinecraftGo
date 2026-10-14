@@ -12,5 +12,5 @@ type PlayerPositionAndRotation struct {
 }
 
 func (ppar *PlayerPositionAndRotation) GetPacketId() int {
-	return constants.SBPlayerPositionAndRotation
+	return constants.SBMovePlayerPosRot
 }

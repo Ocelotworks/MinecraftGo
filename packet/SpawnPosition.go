@@ -1,28 +1,23 @@
 package packet
 
-import "github.com/Ocelotworks/MinecraftGo/constants"
+import (
+	"github.com/Ocelotworks/MinecraftGo/constants"
+	"github.com/Ocelotworks/MinecraftGo/dataTypes"
+)
 
+// SpawnPosition is ClientboundSetDefaultSpawnPositionPacket: the level's
+// respawn data, which is a GlobalPos — the dimension the spawn is in and the
+// block it is at — followed by the angle to face on respawning.
+//
+// This is the compass target and the fallback respawn point, not the position
+// the joining player is placed at; that is PlayerPositionAndLook.
 type SpawnPosition struct {
-	DimensionType    int    `proto:"varInt"`
-	DimensionName    string `proto:"string"`
-	HashedSeed       int64  `proto:"long"`
-	GameMode         byte   `proto:"unsignedByte"`
-	PreviousGameMode byte   `proto:"byte"`
-	IsDebug          bool   `proto:"bool"`
-	IsFlat           bool   `proto:"bool"`
-	HasDeathLocation bool   `proto:"bool"`
-	// todo: death location
-	PortalCooldown int  `proto:"varInt"`
-	SeaLevel       int  `proto:"varInt"`
-	DataKept       byte `proto:"byte"`
+	DimensionName string              `proto:"string"`
+	Location      *dataTypes.Position `proto:"position"`
+	Yaw           float32             `proto:"float"`
+	Pitch         float32             `proto:"float"`
 }
 
 func (sp *SpawnPosition) GetPacketId() int {
-	return constants.CBDefaultSpawnPosition
+	return constants.CBSetDefaultSpawnPosition
 }
-
-/**
-func (sp *SpawnPosition) Handle(packet []byte, connection *Connection) {
-	//Client Only Packet
-}
-*/

@@ -1,0 +1,195 @@
+package main
+
+import (
+	"archive/zip"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"sort"
+	"strings"
+)
+
+// jarFile is a Minecraft client jar opened for reading.
+type jarFile struct {
+	path   string
+	reader *zip.ReadCloser
+}
+
+func openJar(path string) (*jarFile, error) {
+	reader, err := zip.OpenReader(path)
+	if err != nil {
+		return nil, fmt.Errorf("opening jar %s: %w", path, err)
+	}
+	return &jarFile{path: path, reader: reader}, nil
+}
+
+func (j *jarFile) Close() error { return j.reader.Close() }
+
+func (j *jarFile) read(name string) ([]byte, error) {
+	for _, entry := range j.reader.File {
+		if entry.Name != name {
+			continue
+		}
+		file, err := entry.Open()
+		if err != nil {
+			return nil, fmt.Errorf("opening %s in jar: %w", name, err)
+		}
+		defer file.Close()
+		return io.ReadAll(file)
+	}
+	return nil, fmt.Errorf("%s not found in %s", name, j.path)
+}
+
+// jarVersion is the subset of the jar's version.json this tool needs.
+type jarVersion struct {
+	ID              string `json:"id"`
+	ProtocolVersion int    `json:"protocol_version"`
+	WorldVersion    int    `json:"world_version"`
+}
+
+func (j *jarFile) readVersion() (jarVersion, error) {
+	version := jarVersion{}
+
+	raw, err := j.read("version.json")
+	if err != nil {
+		return version, err
+	}
+	if err := json.Unmarshal(raw, &version); err != nil {
+		return version, fmt.Errorf("parsing version.json: %w", err)
+	}
+	if version.ID == "" || version.ProtocolVersion == 0 {
+		return version, fmt.Errorf("version.json in %s has no id or protocol version", j.path)
+	}
+
+	return version, nil
+}
+
+// displayNames reads the English block names out of the jar's language file,
+// keyed by block registry name.
+func (j *jarFile) displayNames() (map[string]string, error) {
+	raw, err := j.read("assets/minecraft/lang/en_us.json")
+	if err != nil {
+		return nil, err
+	}
+
+	translations := make(map[string]string)
+	if err := json.Unmarshal(raw, &translations); err != nil {
+		return nil, fmt.Errorf("parsing en_us.json: %w", err)
+	}
+
+	names := make(map[string]string, len(translations))
+	for key, value := range translations {
+		if suffix, ok := strings.CutPrefix(key, "block.minecraft."); ok {
+			names["minecraft:"+suffix] = value
+		}
+	}
+
+	return names, nil
+}
+
+type extractResult struct {
+	Written   int
+	Unchanged int
+	// Stale lists files already on disc that this jar does not contain.  They
+	// matter because the server loads every json under data/minecraft into its
+	// registries, and an entry the client does not have shifts every ID after
+	// it.
+	Stale []string
+}
+
+// extractDatapack writes the jar's data/minecraft tree into outputPath.
+func (j *jarFile) extractDatapack(outputPath string, prune bool) (extractResult, error) {
+	result := extractResult{}
+
+	root, err := filepath.Abs(outputPath)
+	if err != nil {
+		return result, err
+	}
+
+	const prefix = "data/minecraft/"
+	fromJar := make(map[string]bool)
+
+	for _, entry := range j.reader.File {
+		if !strings.HasPrefix(entry.Name, prefix) || strings.HasSuffix(entry.Name, "/") {
+			continue
+		}
+
+		// A zip entry can name a path outside the destination; refuse those
+		// rather than writing wherever they point.
+		target := filepath.Join(root, filepath.FromSlash(strings.TrimPrefix(entry.Name, "data/")))
+		if !strings.HasPrefix(target, root+string(os.PathSeparator)) {
+			return result, fmt.Errorf("jar entry %q escapes the output directory", entry.Name)
+		}
+		fromJar[target] = true
+
+		file, err := entry.Open()
+		if err != nil {
+			return result, fmt.Errorf("opening %s in jar: %w", entry.Name, err)
+		}
+		contents, err := io.ReadAll(file)
+		file.Close()
+		if err != nil {
+			return result, fmt.Errorf("reading %s from jar: %w", entry.Name, err)
+		}
+
+		existing, err := os.ReadFile(target)
+		if err == nil && bytes.Equal(existing, contents) {
+			result.Unchanged++
+			continue
+		}
+
+		if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
+			return result, err
+		}
+		if err := os.WriteFile(target, contents, 0o644); err != nil {
+			return result, fmt.Errorf("writing %s: %w", target, err)
+		}
+		result.Written++
+	}
+
+	if len(fromJar) == 0 {
+		return result, fmt.Errorf("no data/minecraft entries in %s — is this a Minecraft jar?", j.path)
+	}
+
+	minecraftDir := filepath.Join(root, "minecraft")
+	err = filepath.Walk(minecraftDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil || info.IsDir() || fromJar[path] {
+			return err
+		}
+		relative, relErr := filepath.Rel(root, path)
+		if relErr != nil {
+			relative = path
+		}
+		result.Stale = append(result.Stale, filepath.ToSlash(relative))
+		if prune {
+			return os.Remove(path)
+		}
+		return nil
+	})
+	if err != nil && !os.IsNotExist(err) {
+		return result, err
+	}
+	sort.Strings(result.Stale)
+
+	return result, nil
+}
+
+// writeProtocolConstants rewrites the generated constants file naming the
+// version this server speaks.
+func writeProtocolConstants(path string, version jarVersion) error {
+	source := fmt.Sprintf(`package constants
+
+// Code generated by cmd/mcdata. DO NOT EDIT.
+
+const ProtocolVersion = %d
+const GameVersion = %q
+`, version.ProtocolVersion, version.ID)
+
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(path, []byte(source), 0o644)
+}

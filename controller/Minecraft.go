@@ -3,12 +3,13 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
+	"math"
+	"time"
+
 	"github.com/Ocelotworks/MinecraftGo/constants"
 	"github.com/Ocelotworks/MinecraftGo/dataTypes/nbt"
 	"github.com/Ocelotworks/MinecraftGo/helpers"
 	"github.com/Ocelotworks/MinecraftGo/world"
-	"math"
-	"time"
 
 	"github.com/Ocelotworks/MinecraftGo/entity"
 	packetType "github.com/Ocelotworks/MinecraftGo/packet"
@@ -27,8 +28,14 @@ type Minecraft struct {
 	TimeOfDay            int64
 	DataStore            *DataStore
 	Registries           map[string]map[string]nbt.NBTValue
+	Tags                 map[string]map[string][]string
 	ChunkManager         *world.ChunkManager
+	WorldRegistry        *WorldRegistry
 }
+
+// WorldPath is the world directory chunks are read from, relative to the
+// working directory the server is started in.
+const WorldPath = "data/worlds/MCGO_FlatTest"
 
 func CreateMinecraft() *Minecraft {
 	purple := entity.Purple
@@ -366,14 +373,10 @@ func (mc *Minecraft) StartPlayerJoin(connection *Connection) {
 	}
 
 	returnPacket := packetType.Packet(&packetType.LoginSuccess{
-		UUID:     stringUUID.Bytes(),
-		Username: connection.Player.Username,
-		Properties: []packetType.LoginProperty{
-			{
-				Key:   "test",
-				Value: "test2",
-			},
-		},
+		UUID:             stringUUID.Bytes(),
+		Username:         connection.Player.Username,
+		PropertiesLength: 0,
+		SessionID:        stringUUID.Bytes(),
 	})
 
 	connection.SendPacket(&returnPacket)
@@ -446,11 +449,23 @@ func (mc *Minecraft) LoadRegistries() {
 			mc.Registries[registryName][entryFile] = &nbtValue
 		}
 	}
+
+	mc.Tags = helpers.LoadAllTags()
 }
 
 func (mc *Minecraft) LoadChunks() {
+	mc.ChunkManager = world.NewChunkManager(WorldPath, world.Overworld)
 
-	mc.ChunkManager = world.NewChunkManager()
-	mc.ChunkManager.LoadRegion(0, 0)
+	// The rest of the world is read on demand by ChunkManager.GetChunk; the
+	// spawn region is loaded up front so the first player to join does not
+	// wait on disc.
+	if err := mc.ChunkManager.LoadRegion(0, 0); err != nil {
+		fmt.Println("Loading spawn region:", err)
+	}
 
+	biomeNames := make([]string, 0, len(mc.Registries["minecraft:worldgen/biome"]))
+	for name := range mc.Registries["minecraft:worldgen/biome"] {
+		biomeNames = append(biomeNames, name)
+	}
+	mc.WorldRegistry = NewWorldRegistry(mc.DataStore.BlockData, biomeNames)
 }

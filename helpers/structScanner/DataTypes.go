@@ -64,8 +64,7 @@ func ReadNBT(buf []byte) (interface{}, int) {
 }
 
 func WriteNBT(compoundStruct interface{}) []byte {
-	output := nbt.NBTMarshal(compoundStruct)
-	return output[:len(output)-1]
+	return nbt.NBTMarshal(compoundStruct)
 }
 
 //func WritePrefixedNBTarray (compoundStruct interface{}) []byte {
@@ -85,5 +84,5 @@ func WritePrefixedOptionalNBT(compoundStruct interface{}) []byte {
 	b := dataTypes.WriteBoolean(true) // TODO: support false
 	b = append(b, nbt.NBTMarshal(compoundStruct)...)
 
-	return b[:len(b)-1] // TODO: why is this off by one?
+	return b
 }

@@ -13,7 +13,7 @@ type EntityPositionAndRotation struct {
 }
 
 func (epar *EntityPositionAndRotation) GetPacketId() int {
-	return constants.CBEntityPositionAndRotation
+	return constants.CBMoveEntityPosRot
 }
 
 /**

@@ -10,9 +10,9 @@ type PluginMessage struct {
 
 func (pm *PluginMessage) GetPacketId() int {
 	if pm.IsServer {
-		return constants.SBPluginMessage
+		return constants.SBCustomPayload
 	}
-	return constants.CBPluginMessage
+	return constants.CBCustomPayload
 }
 
 /**

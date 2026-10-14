@@ -11,7 +11,7 @@ type EntityPosition struct {
 }
 
 func (ep *EntityPosition) GetPacketId() int {
-	return constants.CBEntityPosition
+	return constants.CBMoveEntityPos
 }
 
 /**

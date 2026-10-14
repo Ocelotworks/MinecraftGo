@@ -7,7 +7,7 @@ type PlayerMovement struct {
 }
 
 func (pm *PlayerMovement) GetPacketId() int {
-	return constants.SBPlayerMovement
+	return constants.SBMovePlayerStatusOnly
 }
 
 /**

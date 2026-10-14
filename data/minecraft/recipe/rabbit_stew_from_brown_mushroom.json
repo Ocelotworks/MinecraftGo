@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shapeless",
-  "category": "misc",
   "group": "rabbit_stew",
   "ingredients": [
     "minecraft:baked_potato",
@@ -10,7 +9,6 @@
     "minecraft:brown_mushroom"
   ],
   "result": {
-    "count": 1,
     "id": "minecraft:rabbit_stew"
   }
 }

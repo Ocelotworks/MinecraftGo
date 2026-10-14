@@ -6,12 +6,15 @@ import (
 	"crypto/cipher"
 	"crypto/rsa"
 	"encoding/hex"
+	"errors"
 	"fmt"
-	"github.com/Ocelotworks/MinecraftGo/constants"
 	"io"
 	"net"
 	"runtime/debug"
+	"sync"
 	"time"
+
+	"github.com/Ocelotworks/MinecraftGo/constants"
 
 	"github.com/Ocelotworks/MinecraftGo/dataTypes"
 	"github.com/Ocelotworks/MinecraftGo/entity"
@@ -34,6 +37,12 @@ type Connection struct {
 	SharedSecret     []byte
 	Cipher           cipher.Stream
 	DecryptionCipher cipher.Stream
+
+	// writeLock serialises SendPacket.  Keepalives, chat and entity updates
+	// are all sent from their own goroutines, and two of them writing at once
+	// interleaves their bytes, which leaves the client reading a length
+	// prefix from the middle of another packet.
+	writeLock sync.Mutex
 }
 
 type State int
@@ -56,35 +65,36 @@ var controllers = map[State][]Packet{
 		0x01: &StatusPing{},
 	},
 	LOGIN: {
-		constants.SBLoginStart:              &LoginStart{},
-		constants.SBLoginEncryptionResponse: &EncryptionResponse{},
-		constants.SBLoginPluginResponse:     &LoginPluginResponse{},
-		constants.SBLoginAcknowledged:       &LoginAcknowledged{},
+		constants.SBHelloLogin:             &LoginStart{},
+		constants.SBKeyLogin:               &EncryptionResponse{},
+		constants.SBCustomQueryAnswerLogin: &LoginPluginResponse{},
+		constants.SBLoginAcknowledged:      &LoginAcknowledged{},
 	},
+	TRANSFER: {},
 	CONFIGURATION: {
 		constants.SBClientInformationConfiguration: &ClientInformation{},
-		constants.SBPluginMessageConfiguration:     &PluginMessage{},
-		constants.SBKnownPacksConfiguration:        &KnownPacks{},
-		constants.SBAcknowledgeFinishConfiguration: &AcknowledgeFinishConfiguration{},
+		constants.SBCustomPayloadConfiguration:     &PluginMessage{},
+		constants.SBSelectKnownPacksConfiguration:  &KnownPacks{},
+		constants.SBFinishConfiguration:            &AcknowledgeFinishConfiguration{},
 	},
 	PLAY: {
-		constants.SBClientTickEnd:             &ClientTickEnd{},
-		constants.SBConfirmTeleportation:      &TeleportConfirm{},
-		constants.SBChatMessage:               &IncomingChatMessage{},
-		constants.SBClientInformation:         &ClientSettings{},
-		constants.SBPluginMessage:             &PluginMessage{},
-		constants.SBKeepAlive:                 &KeepAlive{},
-		constants.SBPlayerPosition:            &PlayerPosition{},
-		constants.SBPlayerPositionAndRotation: &PlayerPositionAndRotation{},
-		constants.SBPlayerRotation:            &PlayerRotation{},
-		constants.SBPlayerMovement:            &PlayerMovement{},
-		constants.SBPlayerAbilities:           &PlayerAbilities{},
-		//constants.SBPlayerDigging:             &PlayerAction{},
-		//constants.SBEntityAction:              &PlayerCommand{},
-		constants.SBSetHeldItem:  &HeldItemChange{},
-		constants.SBSwingArm:     &Animation{},
-		constants.SBClientStatus: &ClientStatus{},
-		constants.SBUseItemOn:    &PlayerBlockPlacement{},
+		constants.SBClientTickEnd:        &ClientTickEnd{},
+		constants.SBAcceptTeleportation:  &TeleportConfirm{},
+		constants.SBChat:                 &IncomingChatMessage{},
+		constants.SBClientInformation:    &ClientSettings{},
+		constants.SBCustomPayload:        &PluginMessage{},
+		constants.SBKeepAlive:            &KeepAlive{},
+		constants.SBMovePlayerPos:        &PlayerPosition{},
+		constants.SBMovePlayerPosRot:     &PlayerPositionAndRotation{},
+		constants.SBMovePlayerRot:        &PlayerRotation{},
+		constants.SBMovePlayerStatusOnly: &PlayerMovement{},
+		constants.SBPlayerAbilities:      &PlayerAbilities{},
+		//constants.SBPlayerAction:  &PlayerAction{},
+		//constants.SBPlayerCommand: &PlayerCommand{},
+		constants.SBSetCarriedItem: &HeldItemChange{},
+		constants.SBInteract:       &Interact{},
+		constants.SBClientCommand:  &ClientStatus{},
+		constants.SBUseItemOn:      &PlayerBlockPlacement{},
 	},
 }
 
@@ -126,107 +136,159 @@ func (c *Connection) sendKeepAlive() {
 	}
 }
 
+// errUnframed means the stream is no longer sitting on a packet boundary: a
+// length prefix has to be a VarInt, and nothing past five bytes is one.
+var errUnframed = errors.New("packet length is not a VarInt")
+
+// readPacketLength reads the VarInt every packet is prefixed with.  It reports
+// the length, how many bytes the prefix took, and whether the buffer holds the
+// whole prefix yet.
+func readPacketLength(buf []byte) (length int, prefix int, complete bool, exception error) {
+	for i := 0; i < len(buf); i++ {
+		length |= int(buf[i]&0b01111111) << (7 * i)
+		if buf[i]&0b10000000 == 0 {
+			return length, i + 1, true, nil
+		}
+		if i == 4 {
+			return 0, 0, false, errUnframed
+		}
+	}
+
+	return 0, 0, false, nil
+}
+
 func (c *Connection) Handle() {
 	defer c.HandleError()
-	packetStructScanner := structScanner.PacketStructScanner{}
-	buf := make([]byte, 4096)
+
+	readBuffer := make([]byte, 4096)
+
+	// One read is not one packet.  The client coalesces several packets into
+	// a single write — in play it sends a handful every tick — and a big one
+	// arrives split across several reads.  So bytes are collected here and
+	// taken back out a whole packet at a time, as the length prefix says.
+	var pending []byte
+
 	for {
-		// Read the incoming connection into the buffer.
-		count, err := c.Conn.Read(buf)
+		count, err := c.Conn.Read(readBuffer)
 
 		if err != nil {
 			//fmt.Println("Error reading:", err.Error())
-			_ = c.Conn.Close()
-			if c.Player != nil {
-				c.Minecraft.ConnectedPlayers--
-			}
-			for i, conn := range c.Minecraft.Connections {
-				if conn == c {
-					c.Minecraft.Connections[i] = c.Minecraft.Connections[len(c.Minecraft.Connections)-1]
-					c.Minecraft.Connections = c.Minecraft.Connections[:len(c.Minecraft.Connections)-1]
-					break
-				}
-			}
+			c.Drop()
 			return
+		}
+
+		received := make([]byte, count)
+
+		if c.EnableEncryption {
+			// CFB8 is a stream cipher, so this has to run over every byte
+			// exactly once and in order.  Decrypting a read at a time rather
+			// than a packet at a time is what keeps it in step.
+			c.DecryptionCipher.XORKeyStream(received, readBuffer[:count])
 		} else {
-			decryptedBuf := make([]byte, count)
+			copy(received, readBuffer[:count])
+		}
 
-			if c.EnableEncryption {
-				c.DecryptionCipher.XORKeyStream(decryptedBuf, buf[:count])
-			} else {
-				copy(decryptedBuf, buf[:count])
+		pending = append(pending, received...)
+
+		for {
+			length, prefix, complete, exception := readPacketLength(pending)
+
+			if exception != nil {
+				fmt.Println("!!! Lost the packet boundary:", exception)
+				c.Drop()
+				return
 			}
 
-			_, cursor := dataTypes.ReadVarInt(decryptedBuf)
-			//length := iLength.(int)
-
-			//fmt.Println("Packet length ", length)
-
-			if c.EnableCompression {
-				dataLength, end := dataTypes.ReadVarInt(decryptedBuf[cursor:])
-				//fmt.Println("Data length ", dataLength)
-				cursor += end
-				if dataLength.(int) > 0 {
-					//fmt.Println("Data length is above compression threshold")
-					compressedPacket := bytes.NewReader(decryptedBuf[cursor:])
-					r, exception := zlib.NewReader(compressedPacket)
-
-					if exception != nil {
-						fmt.Println("Exception decompressing packet ", exception)
-						return
-					}
-
-					var uncompressedPacket bytes.Buffer
-					_, exception = io.Copy(&uncompressedPacket, r)
-					r.Close()
-					if exception != nil {
-						fmt.Println("Exception reading decompressed packet ", exception)
-						return
-					}
-
-					decryptedBuf = uncompressedPacket.Bytes()
-					cursor = 0
-				}
+			if !complete || len(pending) < prefix+length {
+				// The rest of this packet has not arrived yet.
+				break
 			}
 
-			//fmt.Printf("Read length: %d, Reported Length: %d\n", readLength, length)
+			c.HandlePacket(pending[prefix : prefix+length])
+			pending = pending[prefix+length:]
+		}
 
-			iPacketType, end := dataTypes.ReadVarInt(decryptedBuf[cursor:])
-			currentPacketType := iPacketType.(int)
-			cursor += end
+		if len(pending) == 0 {
+			pending = nil
+		}
+	}
+}
 
-			if controllers[c.State] == nil {
-				fmt.Println("!!! Bad State ", c.State)
-				continue
+// HandlePacket decodes one whole packet — everything after its length prefix —
+// and hands it to the controller registered for its type in the current state.
+func (c *Connection) HandlePacket(packetData []byte) {
+	packetStructScanner := structScanner.PacketStructScanner{}
+
+	if c.EnableCompression {
+		dataLength, cursor := dataTypes.ReadVarInt(packetData)
+		packetData = packetData[cursor:]
+
+		if dataLength.(int) > 0 {
+			//fmt.Println("Data length is above compression threshold")
+			r, exception := zlib.NewReader(bytes.NewReader(packetData))
+
+			if exception != nil {
+				fmt.Println("Exception decompressing packet ", exception)
+				return
 			}
 
-			if currentPacketType < 0 || len(controllers[c.State]) < currentPacketType || currentPacketType >= len(controllers[c.State]) || controllers[c.State][currentPacketType] == nil {
-				fmt.Printf("!!! Serverbound packet of type 0x%X has no handler in state %d\n", currentPacketType, c.State)
-				continue
+			var uncompressedPacket bytes.Buffer
+			_, exception = io.Copy(&uncompressedPacket, r)
+			r.Close()
+			if exception != nil {
+				fmt.Println("Exception reading decompressed packet ", exception)
+				return
 			}
 
-			packetController := controllers[c.State][currentPacketType]
+			packetData = uncompressedPacket.Bytes()
+		}
+	}
 
-			packet := packetController.GetPacketStruct()
+	iPacketType, cursor := dataTypes.ReadVarInt(packetData)
+	currentPacketType := iPacketType.(int)
 
-			//if cursor+length > len(decryptedBuf) {
-			//	fmt.Println("Buffer overflow", cursor+length, len(decryptedBuf))
-			//	continue
-			//}
+	if controllers[c.State] == nil {
+		fmt.Println("!!! Bad State ", c.State)
+		return
+	}
 
-			packetBuffer := decryptedBuf[cursor:]
+	if currentPacketType < 0 || currentPacketType >= len(controllers[c.State]) || controllers[c.State][currentPacketType] == nil {
+		fmt.Printf("!!! Serverbound packet of type 0x%X has no handler in state %d\n", currentPacketType, c.State)
+		return
+	}
 
-			if c.State < 5 {
-				fmt.Println("Current state ", c.State)
-				fmt.Println("Incoming packet type ", currentPacketType)
-				fmt.Println(">>>INCOMING<<<")
-				fmt.Println(hex.Dump(packetBuffer))
-			}
+	packetController := controllers[c.State][currentPacketType]
 
-			packetStructScanner.StructScan(&packet, packetBuffer)
+	packet := packetController.GetPacketStruct()
 
-			packetController.Init(packet, c.Minecraft)
-			packetController.Handle(decryptedBuf, c)
+	packetBuffer := packetData[cursor:]
+
+	if c.State < PLAY {
+		fmt.Println("Current state ", c.State)
+		fmt.Println("Incoming packet type ", currentPacketType)
+		fmt.Println(">>>INCOMING<<<")
+		fmt.Println(hex.Dump(packetBuffer))
+	}
+
+	packetStructScanner.StructScan(&packet, packetBuffer)
+
+	packetController.Init(packet, c.Minecraft)
+	packetController.Handle(packetBuffer, c)
+}
+
+// Drop closes the connection and takes it out of the server's list.
+func (c *Connection) Drop() {
+	_ = c.Conn.Close()
+
+	if c.Player != nil {
+		c.Minecraft.ConnectedPlayers--
+	}
+
+	for i, conn := range c.Minecraft.Connections {
+		if conn == c {
+			c.Minecraft.Connections[i] = c.Minecraft.Connections[len(c.Minecraft.Connections)-1]
+			c.Minecraft.Connections = c.Minecraft.Connections[:len(c.Minecraft.Connections)-1]
+			break
 		}
 	}
 }
@@ -239,14 +301,29 @@ func (c *Connection) HandleError() {
 	_ = c.Conn.Close()
 }
 
+// maxDumpedPacketBytes caps the outgoing hex dump.  A chunk packet carries a
+// full set of sky light arrays, so dumping one in full is fifty thousand bytes
+// of console, and a join sends a few hundred of them.
+const maxDumpedPacketBytes = 512
+
 func (c *Connection) SendPacket(packet *packetType.Packet) error {
+	// Everything below writes to the same socket, and the callers are not all
+	// on the same goroutine: keepalives, chat and entity updates each have
+	// their own.  Two of them writing at once splices one packet into the
+	// middle of another and the client stops being able to find a packet
+	// boundary at all.
+	c.writeLock.Lock()
+	defer c.writeLock.Unlock()
+
 	var payload []byte
-	packetID := byte((*packet).GetPacketId())
+
+	packetIDInt := (*packet).GetPacketId()
+	packetIDBytes := dataTypes.WriteVarInt(packetIDInt)
 	packetStructScanner := structScanner.PacketStructScanner{}
-	fmt.Printf("Sending packet 0x%X\n", packetID)
+	fmt.Printf("Sending packet 0x%X\n", packetIDInt)
 
 	if c.EnableCompression {
-		uncompressedPayload := append([]byte{packetID}, packetStructScanner.UnmarshalData(*packet)...)
+		uncompressedPayload := append(packetIDBytes, packetStructScanner.UnmarshalData(*packet)...)
 		dataLength := len(uncompressedPayload)
 		if dataLength >= c.Minecraft.CompressionThreshold {
 			payload = dataTypes.WriteVarInt(dataLength) //Length of uncompressed payload - needs packet length before it
@@ -265,15 +342,16 @@ func (c *Connection) SendPacket(packet *packetType.Packet) error {
 			payload = uncompressedPayload
 		}
 	} else {
-		payload = packetStructScanner.UnmarshalData(*packet)
-		payload = append([]byte{packetID}, payload...)
+		payload = append(packetIDBytes, packetStructScanner.UnmarshalData(*packet)...)
 		payload = append(dataTypes.WriteVarInt(len(payload)), payload...)
 	}
 
-	//if len(payload) < 1024 {
 	fmt.Println(">>>OUTGOING<<<")
-	fmt.Println(hex.Dump(payload))
-	///}
+	if len(payload) <= maxDumpedPacketBytes {
+		fmt.Println(hex.Dump(payload))
+	} else {
+		fmt.Printf("%s[... %d more bytes]\n\n", hex.Dump(payload[:maxDumpedPacketBytes]), len(payload)-maxDumpedPacketBytes)
+	}
 
 	// fmt.Println("Writing payload")
 	var exception error

@@ -11,5 +11,5 @@ type EntityEffect struct {
 }
 
 func (bc *EntityEffect) GetPacketId() int {
-	return constants.CBEntityEffect
+	return constants.CBUpdateMobEffect
 }

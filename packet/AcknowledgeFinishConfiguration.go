@@ -6,5 +6,5 @@ type AcknowledgeFinishConfiguration struct {
 }
 
 func (la *AcknowledgeFinishConfiguration) GetPacketId() int {
-	return constants.SBAcknowledgeFinishConfiguration
+	return constants.SBFinishConfiguration
 }
