@@ -29,6 +29,7 @@ type Minecraft struct {
 	DataStore            *DataStore
 	Registries           map[string]map[string]nbt.NBTValue
 	Tags                 map[string]map[string][]string
+	RegistryIDs          map[string]map[string]int // static registries only, see helpers.LoadRegistryIDs
 	ChunkManager         *world.ChunkManager
 	WorldRegistry        *WorldRegistry
 }
@@ -373,10 +374,9 @@ func (mc *Minecraft) StartPlayerJoin(connection *Connection) {
 	}
 
 	returnPacket := packetType.Packet(&packetType.LoginSuccess{
-		UUID:             stringUUID.Bytes(),
-		Username:         connection.Player.Username,
-		PropertiesLength: 0,
-		SessionID:        stringUUID.Bytes(),
+		UUID:      stringUUID.Bytes(),
+		Username:  connection.Player.Username,
+		SessionID: stringUUID.Bytes(),
 	})
 
 	connection.SendPacket(&returnPacket)
@@ -451,6 +451,7 @@ func (mc *Minecraft) LoadRegistries() {
 	}
 
 	mc.Tags = helpers.LoadAllTags()
+	mc.RegistryIDs = helpers.LoadRegistryIDs()
 }
 
 func (mc *Minecraft) LoadChunks() {

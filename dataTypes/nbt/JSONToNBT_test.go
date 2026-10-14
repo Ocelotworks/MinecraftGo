@@ -3,12 +3,14 @@ package nbt
 import (
 	"fmt"
 	"github.com/Ocelotworks/MinecraftGo/helpers"
+	"github.com/Ocelotworks/MinecraftGo/helpers/testutil"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
 )
 
 func TestJSONToNBT(t *testing.T) {
+	testutil.ChdirToRepoRoot(t) // the registry data is read from data/ in the repo root
 
 	t.Run("Simple JSON", func(t *testing.T) {
 		compoundValue, err := JSONToNBT([]byte(`{

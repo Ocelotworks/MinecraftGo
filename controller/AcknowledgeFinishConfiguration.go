@@ -40,12 +40,13 @@ func (lpr *AcknowledgeFinishConfiguration) Handle(packet []byte, connection *Con
 		DimensionName:       "minecraft:overworld",
 		HashedSeed:          71495747907944700,
 		Gamemode:            1,
-		PreviousGamemode:    1,
+		PreviousGamemode:    0, // none
 		IsDebug:             false,
 		IsFlat:              false,
 		HasDeathLocation:    false,
 		PortalCooldown:      0,
 		SeaLevel:            64,
+		OnlineMode:          false,
 		EnforcesSecureChat:  false,
 	})
 

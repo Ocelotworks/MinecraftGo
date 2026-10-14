@@ -10,9 +10,18 @@ import (
 
 type PacketStructScanner struct{}
 
+// prefixedArrayTag marks a slice-of-struct field that is encoded as a varInt
+// element count followed by that many consecutive elements. Each element is
+// itself encoded field by field using the element struct's own proto tags.
+const prefixedArrayTag = "prefixedArray"
+
 func (pss *PacketStructScanner) StructScan(packet *packetType.Packet, buf []byte) {
-	v := reflect.ValueOf(*packet).Elem()
-	t := reflect.TypeOf(*packet).Elem()
+	pss.scanStruct(reflect.ValueOf(*packet).Elem(), buf)
+}
+
+// scanStruct fills the struct v from buf and returns the number of bytes consumed.
+func (pss *PacketStructScanner) scanStruct(v reflect.Value, buf []byte) int {
+	t := v.Type()
 
 	cursor := 0
 
@@ -22,6 +31,16 @@ func (pss *PacketStructScanner) StructScan(packet *packetType.Packet, buf []byte
 		if !exists {
 			continue
 		}
+
+		if tag == prefixedArrayTag {
+			if len(buf) < cursor {
+				fmt.Println("Cursor overrun")
+				continue
+			}
+			cursor += pss.scanPrefixedArray(v.Field(fieldIndex), buf[cursor:])
+			continue
+		}
+
 		if dataReadMap[tag] == nil {
 			fmt.Println("!!! Unknown tag type ", tag)
 			continue
@@ -39,6 +58,34 @@ func (pss *PacketStructScanner) StructScan(packet *packetType.Packet, buf []byte
 
 		v.FieldByName(field.Name).Set(reflect.ValueOf(val))
 	}
+
+	return cursor
+}
+
+// scanPrefixedArray reads a varInt length followed by that many struct elements
+// into the slice field, returning the number of bytes consumed.
+func (pss *PacketStructScanner) scanPrefixedArray(slice reflect.Value, buf []byte) int {
+	if slice.Kind() != reflect.Slice || slice.Type().Elem().Kind() != reflect.Struct {
+		fmt.Println("!!! prefixedArray requires a slice of structs, got ", slice.Type())
+		return 0
+	}
+
+	length, cursor := dataTypes.ReadVarInt(buf)
+	count := length.(int)
+	// Every element is at least one byte on the wire, so a count larger than the
+	// remaining buffer is malformed (and must not drive a huge allocation).
+	if count < 0 || count > len(buf)-cursor {
+		fmt.Println("!!! Invalid prefixedArray length ", count)
+		slice.Set(reflect.MakeSlice(slice.Type(), 0, 0))
+		return cursor
+	}
+
+	slice.Set(reflect.MakeSlice(slice.Type(), count, count))
+	for i := 0; i < count; i++ {
+		cursor += pss.scanStruct(slice.Index(i), buf[cursor:])
+	}
+
+	return cursor
 }
 
 func (pss *PacketStructScanner) UnmarshalData(input interface{}) []byte {
@@ -62,8 +109,9 @@ func (pss *PacketStructScanner) UnmarshalData(input interface{}) []byte {
 
 		var segment []byte
 
-		// TODO: why is this here?
-		if tag == "playerArray" {
+		if tag == prefixedArrayTag {
+			segment = pss.marshalPrefixedArray(v.FieldByName(field.Name))
+		} else if tag == "playerArray" { // TODO: why is this here?
 			playerData := val.([]entity.Player)
 			segment = dataTypes.WriteVarInt(len(playerData))
 			//fmt.Println("Player Data Array Length ", len(playerData))
@@ -106,4 +154,19 @@ func (pss *PacketStructScanner) UnmarshalData(input interface{}) []byte {
 	}
 
 	return payload
+}
+
+// marshalPrefixedArray writes a varInt element count followed by each struct element.
+func (pss *PacketStructScanner) marshalPrefixedArray(slice reflect.Value) []byte {
+	if slice.Kind() != reflect.Slice || slice.Type().Elem().Kind() != reflect.Struct {
+		fmt.Println("!!! prefixedArray requires a slice of structs, got ", slice.Type())
+		return nil
+	}
+
+	segment := dataTypes.WriteVarInt(slice.Len())
+	for i := 0; i < slice.Len(); i++ {
+		segment = append(segment, pss.UnmarshalData(slice.Index(i).Addr().Interface())...)
+	}
+
+	return segment
 }

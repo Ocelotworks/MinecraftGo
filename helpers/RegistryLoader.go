@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,12 +11,21 @@ import (
 func LoadAllRegistries() map[string]map[string]string {
 	output := make(map[string]map[string]string)
 
-	filepath.Walk("data/minecraft", func(path string, info os.FileInfo, err error) error {
-		if info.IsDir() || !strings.HasSuffix(path, ".json") || strings.HasPrefix(path, "data/minecraft/tags") {
+	err := filepath.Walk("data/minecraft", func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		// Walk hands back backslashes on Windows, which would defeat the prefix checks below.
+		slashPath := filepath.ToSlash(path)
+
+		// Tags are loaded by LoadAllTags, and the optional datapacks the jar bundles are
+		// not part of the base game's registries.
+		skipped := strings.HasPrefix(slashPath, "data/minecraft/tags/") || strings.HasPrefix(slashPath, "data/minecraft/datapacks/")
+		if info.IsDir() || !strings.HasSuffix(slashPath, ".json") || skipped {
 			return nil
 		}
 
-		cleanPath, _ := strings.CutPrefix(strings.ReplaceAll(path, "\\", "/"), "data/minecraft/")
+		cleanPath, _ := strings.CutPrefix(slashPath, "data/minecraft/")
 
 		dir, file := filepath.Split(cleanPath)
 
@@ -44,6 +54,10 @@ func LoadAllRegistries() map[string]map[string]string {
 
 		return nil
 	})
+
+	if err != nil {
+		panic(fmt.Errorf("loading registries from data/minecraft (is the working directory the repository root?): %w", err))
+	}
 
 	return output
 }
@@ -101,5 +115,24 @@ func LoadAllTags() map[string]map[string][]string {
 		panic(err)
 	}
 	//fmt.Println(output)
+	return output
+}
+
+// LoadRegistryIDs reads data/registry_ids.json (written by cmd/mcdata): the protocol
+// id of every entry in the client's static registries, keyed by registry name and
+// then by namespaced entry name.
+func LoadRegistryIDs() map[string]map[string]int {
+	output := make(map[string]map[string]int)
+
+	jsonData, err := os.ReadFile("data/registry_ids.json")
+	if err != nil {
+		fmt.Println("Error reading data/registry_ids.json, run cmd/mcdata to generate it:", err)
+		return output
+	}
+
+	if err := json.Unmarshal(jsonData, &output); err != nil {
+		fmt.Println("Error parsing data/registry_ids.json:", err)
+	}
+
 	return output
 }

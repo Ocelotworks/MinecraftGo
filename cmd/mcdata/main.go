@@ -31,17 +31,18 @@ import (
 )
 
 type options struct {
-	jarPath       string
-	outputPath    string
-	minecraftPath string
-	javaPath      string
-	versionID     string
-	keepReports   string
-	prune         bool
-	skipProtocol  bool
-	skipDatapack  bool
-	skipBlocks    bool
-	skipPackets   bool
+	jarPath         string
+	outputPath      string
+	minecraftPath   string
+	javaPath        string
+	versionID       string
+	keepReports     string
+	prune           bool
+	skipProtocol    bool
+	skipDatapack    bool
+	skipBlocks      bool
+	skipPackets     bool
+	skipRegistryIDs bool
 }
 
 func main() {
@@ -58,6 +59,7 @@ func main() {
 	flag.BoolVar(&opts.skipDatapack, "skip-datapack", false, "do not extract data/minecraft")
 	flag.BoolVar(&opts.skipBlocks, "skip-blocks", false, "do not rewrite data/blocks.json")
 	flag.BoolVar(&opts.skipPackets, "skip-packets", false, "do not rewrite constants/Packets.go")
+	flag.BoolVar(&opts.skipRegistryIDs, "skip-registry-ids", false, "do not rewrite data/registry_ids.json")
 
 	flag.Parse()
 
@@ -114,7 +116,7 @@ func run(opts options) error {
 		}
 	}
 
-	if opts.skipBlocks && opts.skipPackets {
+	if opts.skipBlocks && opts.skipPackets && opts.skipRegistryIDs {
 		return nil
 	}
 

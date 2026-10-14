@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/Ocelotworks/MinecraftGo/constants"
 	packetType "github.com/Ocelotworks/MinecraftGo/packet"
 )
 
@@ -28,10 +29,9 @@ func (lpr *LoginAcknowledged) Handle(packet []byte, connection *Connection) {
 	connection.SendPacket(&enabledFeatures)
 
 	knownPacks := packetType.Packet(&packetType.ClientboundKnownPacks{
-		ArrayLength: 1,
-		Namespace:   "minecraft",
-		ID:          "core",
-		Version:     "26.1.2",
+		KnownPacks: []packetType.KnownPack{
+			{Namespace: "minecraft", ID: "core", Version: constants.GameVersion},
+		},
 	})
 
 	connection.SendPacket(&knownPacks)

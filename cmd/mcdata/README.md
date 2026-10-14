@@ -6,6 +6,10 @@ Regenerates the game data this server reads from a Minecraft client jar.
 go run ./cmd/mcdata -jar decomp/26.1.2.jar
 ```
 
+After a version bump, run `go run ./cmd/mcverify` as well: it checks the packets
+the server sends against the new version's own decoders, which is where changes
+the data generator cannot see (a new field, a re-encoded type) show up.
+
 ## What it produces
 
 | Output | Source | Why it matters |
@@ -13,6 +17,7 @@ go run ./cmd/mcdata -jar decomp/26.1.2.jar
 | `constants/Protocol.go` | the jar's `version.json` | the protocol number sent in the handshake |
 | `data/minecraft/**` | the jar's `data/minecraft` tree | the registry entries and tags sent during configuration; the client numbers them by the order it receives them, so a stale set shifts every id |
 | `data/blocks.json` | the game's own data generator | block state ids, which decide what the client actually renders for each block in a chunk |
+| `data/registry_ids.json` | the game's own data generator | protocol ids of every entry in the static registries (block, item, entity_type, ...), which the server needs to send tags: the client's registry data refers to them and fails to load without them |
 | `constants/Packets.go` | the game's own data generator | packet ids, which decide whether the client can decode anything the server sends at all |
 
 ## Why the data generator
@@ -60,7 +65,7 @@ pass `-minecraft` and `-java`.
 | `-version` | version manifest to take the library list from, if it does not match the jar |
 | `-keep-reports` | keep the raw generator output in a directory for inspection |
 | `-prune` | delete files under `data/minecraft` that the jar no longer contains |
-| `-skip-protocol`, `-skip-datapack`, `-skip-blocks`, `-skip-packets` | run only part of it |
+| `-skip-protocol`, `-skip-datapack`, `-skip-blocks`, `-skip-packets`, `-skip-registry-ids` | run only part of it |
 
 ## Limits
 

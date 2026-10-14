@@ -45,7 +45,10 @@ func TestBlockPosToSectionIndex(t *testing.T) {
 
 		doubleEqual(t, 4, -16, 0, -15, 0, 16, 60)
 		doubleEqual(t, 4, -16, 0, -14, 0, 32, 60)
-		doubleEqual(t, 4, -16, 0, 0, 0, 256, 60)
+
+		// The position is taken modulo the section, so a Y a whole number of sections above the
+		// start of this one lands back on its first entry rather than 256 entries along
+		doubleEqual(t, 4, -16, 0, 0, 0, 0, 60)
 	})
 
 }

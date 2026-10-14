@@ -3,11 +3,10 @@ package packet
 import "github.com/Ocelotworks/MinecraftGo/constants"
 
 type LoginSuccess struct {
-	UUID             []byte `proto:"uuid"`
-	Username         string `proto:"string"`
-	PropertiesLength int    `proto:"varInt"`
-	Properties       []LoginProperty
-	SessionID        []byte `proto:"uuid"`
+	UUID       []byte          `proto:"uuid"`
+	Username   string          `proto:"string"`
+	Properties []LoginProperty `proto:"prefixedArray"`
+	SessionID  []byte          `proto:"uuid"`
 }
 
 type LoginProperty struct {

@@ -82,6 +82,12 @@ func generateFromReports(jar *jarFile, version jarVersion, opts options) error {
 		}
 	}
 
+	if !opts.skipRegistryIDs {
+		if err := generateRegistryIDs(reportsDir, opts.outputPath); err != nil {
+			return err
+		}
+	}
+
 	if opts.skipBlocks {
 		return nil
 	}
@@ -323,5 +329,42 @@ func readJSONFile(path string, into any) error {
 	if err := json.Unmarshal(raw, into); err != nil {
 		return fmt.Errorf("parsing %s: %w", path, err)
 	}
+	return nil
+}
+
+// generateRegistryIDs writes data/registry_ids.json: the protocol id of every
+// entry in every registry the generator reports.
+//
+// The client numbers registry entries the same way it numbers block states —
+// at runtime, from registration order — so the ids appear nowhere in the jar.
+// The server needs them to send tags: a tag binds a name to a list of entry ids,
+// and the static registries (block, item, entity_type, ...) are never sent to
+// the client, so nothing else on the server knows their numbering.
+func generateRegistryIDs(reportsDir string, outputPath string) error {
+	registries := registriesReport{}
+	if err := readJSONFile(filepath.Join(reportsDir, "registries.json"), &registries); err != nil {
+		return err
+	}
+
+	ids := make(map[string]map[string]int, len(registries))
+	entries := 0
+	for registryName, registry := range registries {
+		ids[registryName] = make(map[string]int, len(registry.Entries))
+		for entryName, entry := range registry.Entries {
+			ids[registryName][entryName] = entry.ProtocolID
+			entries++
+		}
+	}
+
+	target := filepath.Join(outputPath, "data", "registry_ids.json")
+	encoded, err := json.Marshal(ids) // map keys are sorted, so reruns produce no diff noise
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(target, append(encoded, '\n'), 0o644); err != nil {
+		return fmt.Errorf("writing %s: %w", target, err)
+	}
+
+	fmt.Printf("Wrote %s: %d registries, %d entries\n", target, len(ids), entries)
 	return nil
 }

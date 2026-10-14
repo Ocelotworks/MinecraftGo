@@ -17,8 +17,8 @@ type JoinGame struct {
 	DimensionType       int      `proto:"varInt"`
 	DimensionName       string   `proto:"string"`
 	HashedSeed          int64    `proto:"long"`
-	Gamemode            byte     `proto:"unsignedByte"`
-	PreviousGamemode    byte     `proto:"byte"`
+	Gamemode            int      `proto:"varInt"`
+	PreviousGamemode    int      `proto:"varInt"` // optional: 0 for none, otherwise the gamemode id + 1
 	IsDebug             bool     `proto:"bool"`
 	IsFlat              bool     `proto:"bool"`
 	HasDeathLocation    bool     `proto:"bool"` // TODO: must be false
@@ -26,6 +26,7 @@ type JoinGame struct {
 	//DeathLocation int // TODO: this is a position
 	PortalCooldown     int  `proto:"varInt"`
 	SeaLevel           int  `proto:"varInt"`
+	OnlineMode         bool `proto:"bool"`
 	EnforcesSecureChat bool `proto:"bool"`
 }
 

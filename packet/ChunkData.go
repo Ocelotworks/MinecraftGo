@@ -16,8 +16,8 @@ type HeightMap struct {
 //   - HeightMapData is a map of heightmap type to long array — a VarInt count
 //     then that many (VarInt type, VarInt length, longs) entries.  A count of
 //     zero sends no heightmaps, which the client accepts.
-//   - The four light masks are each a BitSet, sent as a VarInt long count
-//     followed by that many longs.
+//   - The four light masks are each a BitSet, sent as BitSet.toByteArray()
+//     behind a VarInt byte count (see dataTypes.WriteBitSet).
 //   - The light arrays are each a VarInt length followed by 2048 bytes, one
 //     nibble per block.
 type ChunkData struct {
